@@ -1,0 +1,269 @@
+.sidebar{
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #f0f4f9;
+    padding: 25px 15px;
+    position: relative;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    width: 250px;
+}
+
+/* Когда sidebar закрыт - уменьшаем ширину */
+.sidebar.collapsed {
+    width: 60px;
+    padding: 25px 10px;
+    align-items: center;
+}
+
+/* Кнопка New Chat в collapsed - только иконка */
+.sidebar.collapsed .new-chat {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+/* Скрываем текст в collapsed */
+.sidebar.collapsed .new-chat p {
+    display: none;
+}
+
+/* Профиль в collapsed - только аватар */
+.sidebar.collapsed .profile-section {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+}
+
+.sidebar.collapsed .profile-info {
+    display: none;
+}
+
+/* Центрирование top секции в collapsed */
+.sidebar.collapsed .top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Когда sidebar открыт - полная ширина */
+.sidebar.extended {
+    width: 250px;
+}
+
+/* Градиентная вертикальная линия справа */
+.sidebar::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, #ff930f, #fff95b);
+}
+
+.sidebar img{
+    width: 20px;
+}
+
+.sidebar .menu{
+    display: block;
+    cursor: pointer;
+    transition: margin 0.3s ease;
+}
+
+.sidebar.extended .menu {
+    margin-left: 10px;
+}
+
+.sidebar.collapsed .menu {
+    margin-left: 0;
+}
+
+.sidebar .new-chat{
+    margin-top: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background-color: #e6eaf1;
+    border-radius: 50px;
+    font-size: 14px;
+    color: grey;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.sidebar .recent{
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar .recent-title{
+    margin-top: 30px;
+    margin-bottom: 20px;
+    color: #282828;
+}
+
+.sidebar .recent-entry{
+    display: flex;
+    align-items: start;
+    gap: 10px;
+    padding: 10px;
+    padding-right: 40px;
+    border-radius: 50px;
+    color: #282828;
+    cursor: pointer;
+}
+
+.sidebar .recent-entry:hover{
+    background-color: #e2e6eb;
+}
+
+/* Профиль */
+.sidebar .bottom{
+    position: relative;
+}
+
+.profile-section{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.profile-section:hover{
+    background-color: #e2e6eb;
+}
+
+.profile-info{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.profile-name{
+    font-size: 14px;
+    font-weight: 600;
+    color: #282828;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profile-plan{
+    font-size: 12px;
+    color: #666;
+    font-weight: 400;
+}
+
+/* Выпадающее меню */
+.profile-menu{
+    position: absolute;
+    bottom: 70px;
+    left: 10px;
+    width: 200px;
+    background-color: #ffffff;
+    border: 1px solid #e2e6eb;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    z-index: 1000;
+    animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.profile-menu-item{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.profile-menu-item:hover{
+    background-color: #f0f4f9;
+}
+
+.profile-menu-item img{
+    width: 20px;
+    height: 20px;
+}
+
+.profile-menu-item p{
+    font-size: 14px;
+    color: #282828;
+    margin: 0;
+}
+
+/* Темная тема для sidebar */
+.dark-theme .sidebar {
+    background-color: #2d2d2d;
+}
+
+.dark-theme .sidebar img {
+    filter: brightness(0) invert(1);
+}
+
+.dark-theme .sidebar .new-chat {
+    background-color: #3d3d3d;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.dark-theme .sidebar .recent-title {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.dark-theme .sidebar .recent-entry {
+    color: white;
+}
+
+.dark-theme .sidebar .recent-entry:hover {
+    background-color: #3d3d3d;
+}
+
+.dark-theme .profile-section:hover {
+    background-color: #3d3d3d;
+}
+
+.dark-theme .profile-name {
+    color: white;
+}
+
+.dark-theme .profile-plan {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.dark-theme .profile-menu {
+    background-color: #2d2d2d;
+    border-color: #3d3d3d;
+}
+
+.dark-theme .profile-menu-item:hover {
+    background-color: #3d3d3d;
+}
+
+.dark-theme .profile-menu-item p {
+    color: white;
+}

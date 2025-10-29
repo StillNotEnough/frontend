@@ -1,0 +1,128 @@
+/* Темная тема */
+body.dark-theme {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+body.dark-theme #root {
+  background-color: #1a1a1a;
+}
+
+/* Sidebar темная */
+body.dark-theme .sidebar {
+  background-color: #0f0f0f;
+}
+
+body.dark-theme .sidebar .new-chat {
+  background-color: #1e1e1e;
+  color: #b0b0b0;
+}
+
+body.dark-theme .sidebar .new-chat:hover {
+  background-color: #252525;
+}
+
+body.dark-theme .sidebar .recent-entry {
+  color: #e0e0e0;
+}
+
+body.dark-theme .sidebar .recent-entry:hover {
+  background-color: #1e1e1e;
+}
+
+body.dark-theme .sidebar .recent-title {
+  color: #b0b0b0;
+}
+
+body.dark-theme .profile-section:hover {
+  background-color: #1e1e1e;
+}
+
+body.dark-theme .profile-menu {
+  background-color: #252525;
+  border: 1px solid #333333;
+}
+
+body.dark-theme .profile-menu-item:hover {
+  background-color: #2a2a2a;
+}
+
+body.dark-theme .profile-menu-item p {
+  color: #e0e0e0;
+}
+
+body.dark-theme .profile-name {
+  color: #e0e0e0;
+}
+
+body.dark-theme .profile-plan {
+  color: #888888;
+}
+
+/* Main темная */
+body.dark-theme .main {
+  background-color: #1a1a1a;
+}
+
+body.dark-theme .main .nav {
+  color: #b0b0b0;
+}
+
+body.dark-theme .main .greet {
+  color: #666666;
+}
+
+body.dark-theme .main .card {
+  background-color: #0f0f0f;
+}
+
+body.dark-theme .main .card:hover {
+  background-color: #1e1e1e;
+}
+
+body.dark-theme .main .card p {
+  color: #b0b0b0;
+}
+
+body.dark-theme .search-box {
+  background-color: #0f0f0f;
+}
+
+body.dark-theme .search-box input {
+  color: #e0e0e0;
+}
+
+body.dark-theme .search-box input::placeholder {
+  color: #666666;
+}
+
+body.dark-theme .bottom-info {
+  color: #666666;
+}
+
+/* Сообщения темная */
+body.dark-theme .message-content p {
+  background-color: #0f0f0f;
+  color: #e0e0e0;
+}
+
+body.dark-theme .message.user .message-content p {
+  background-color: #3a5a7a;
+  color: #ffffff;
+}
+
+body.dark-theme .loader hr {
+  background: linear-gradient(to right, #2a4a6a 0%, #3a5a7a 50%, #2a4a6a 100%);
+}
+
+/* Иконка переключателя темы */
+.theme-toggle {
+  cursor: pointer;
+  width: 24px !important;
+  height: 24px;
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+}

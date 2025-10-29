@@ -1,0 +1,617 @@
+.main {
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+  z-index: 1;
+  height: auto; /* ← Убираем 100% высоту */
+  min-height: calc(100vh - 80px); /* ← ограничиваем только вниз */
+}
+
+
+/* Кастомный скроллбар */
+.main::-webkit-scrollbar {
+    width: 8px;
+}
+
+.main::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.main::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+}
+
+.main::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.25);
+}
+
+/* Стрелочки скроллбара */
+.main::-webkit-scrollbar-button {
+    background: rgba(0, 0, 0, 0.1);
+    height: 16px;
+}
+
+.main::-webkit-scrollbar-button:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* Стрелка вверх */
+.main::-webkit-scrollbar-button:vertical:decrement {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 4l-4 4h8z'/%3E%3C/svg%3E");
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Стрелка вниз */
+.main::-webkit-scrollbar-button:vertical:increment {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8l-4-4h8z'/%3E%3C/svg%3E");
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.main .nav{
+    position: sticky;
+    top: 0;    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 22px;
+    padding: 20px;
+    color: #585858;
+    background-color: white;
+    z-index: 100;   
+}
+
+.main .nav img{
+    width: 40px;
+    border-radius: 50%;
+}
+
+.main-container{
+    max-width: 900px;
+    margin: auto;
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+/*    min-height: auto;*/
+}
+
+/* Когда есть сообщения - добавляем padding для fixed input */
+.main-container.has-messages {
+    justify-content: flex-start;
+    /*min-height: 100vh;*/
+    padding-bottom: 0;
+}
+
+/* Контейнер для пустого состояния */
+.empty-state-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: absolute; /* ← ВЕРНУЛ центрирование */
+    max-width: 700px;
+    margin: 0 auto;
+    width: 100%;
+    /*height: calc(100vh - 200px); /* ← ВЕРНУЛ фиксированную высоту */
+    gap: 85px;
+}
+
+.main .greet{
+    margin: 65px;
+    font-size: 56px;
+    color: #c4c7c5;
+    font-weight: 500;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.main .greet .span{
+    background: -webkit-linear-gradient(16deg, #ff930f, #fff95b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.main .cards{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 0;
+    margin-top: 0;
+}
+
+.main .card{
+    height: auto;
+    padding: 10px 20px;
+    background-color: #f0f4f9;
+    border-radius: 25px;
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid transparent;
+    background-image: 
+        linear-gradient(#f0f4f9, #f0f4f9),
+        linear-gradient(90deg, #ff930f, #fff95b);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    -webkit-background-clip: padding-box, border-box;
+}
+
+.main .card img{
+    width: 20px;
+    padding: 0;
+    position: static;
+    background-color: transparent;
+    border-radius: 0;
+}
+
+.main .card p{
+    color: #585858;
+    font-size: 15px;
+}
+
+.main .card:hover{
+    background-color: #dfe4ea;
+}
+
+/* Темная тема для карточек */
+.dark-theme .main .card {
+    background-color: #2d2d2d;
+    background-image: 
+        linear-gradient(#2d2d2d, #2d2d2d),
+        linear-gradient(90deg, #ff930f, #fff95b);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    -webkit-background-clip: padding-box, border-box;
+}
+
+.dark-theme .main .card:hover {
+    background-color: #3d3d3d;
+}
+
+.dark-theme .main .card p {
+    color: white;
+}
+
+.dark-theme .main .card img {
+    filter: brightness(0) invert(1);
+}
+
+/* Стили для отображения сообщений */
+.result{
+    padding: 20px 20px 20px 20px;
+    margin-bottom: 150px; /* Место для input */
+}
+
+.message{
+    margin-bottom: 20px;
+    padding-right: 20px;
+}
+
+.message-content{
+    display: flex;
+    gap: 15px;
+    align-items: start;
+}
+
+.message-content img{
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.message-content p{
+    background-color: #f0f4f9;
+    padding: 12px 16px;
+    border-radius: 12px;
+    max-width: 100%;
+    word-wrap: break-word;
+    line-height: 1.6;
+    font-size: 17px;
+    color: #282828;
+}
+
+.message.user .message-content{
+    flex-direction: row-reverse;
+}
+
+.message.user .message-content p{
+    background-color: #f0f4f9;
+    color: black;
+}
+
+/* Markdown контейнер */
+.message-text {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    max-width: 100%;
+    word-wrap: break-word;
+    line-height: 1.6;
+    font-size: 17px;
+    color: #282828;
+}
+
+/* Markdown стили */
+.message-text h1,
+.message-text h2,
+.message-text h3,
+.message-text h4,
+.message-text h5,
+.message-text h6 {
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.message-text h1 { font-size: 24px; }
+.message-text h2 { font-size: 20px; }
+.message-text h3 { font-size: 18px; }
+.message-text h4 { font-size: 16px; }
+
+.message-text p {
+    margin: 8px 0;
+    background: none;
+    padding: 0;
+}
+
+.message-text ul,
+.message-text ol {
+    margin: 8px 0;
+    padding-left: 24px;
+}
+
+.message-text li {
+    margin: 4px 0;
+}
+
+.message-text code {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+.message-text pre {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 12px 0;
+}
+
+.message-text pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: 14px;
+}
+
+.message-text blockquote {
+    border-left: 4px solid #4b90ff;
+    padding-left: 16px;
+    margin: 12px 0;
+    color: #666;
+    font-style: italic;
+}
+
+.message-text a {
+    color: #ff930f;
+    text-decoration: none;
+}
+
+.message-text a:hover {
+    text-decoration: underline;
+}
+
+.message-text table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+}
+
+.message-text th,
+.message-text td {
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.message-text th {
+    background-color: #f0f4f9;
+    font-weight: 600;
+}
+
+.message-text hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 16px 0;
+}
+
+.message-text strong {
+    font-weight: 600;
+}
+
+.message-text em {
+    font-style: italic;
+}
+
+/* Математические формулы KaTeX */
+.message-text .katex {
+    font-size: 1.1em;
+}
+
+.message-text .katex-display {
+    margin: 16px 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.message-text .katex-display > .katex {
+    text-align: center;
+}
+
+/* Loader для стриминга */
+.loader{
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.loader hr{
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background-color: #999;
+    animation: loader 1.4s infinite ease-in-out both;
+}
+
+.loader hr:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.loader hr:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes loader {
+    0%, 80%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    40% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+/* ==========================
+   ТЕМНАЯ ТЕМА
+   ========================== */
+
+/* Main темная */
+body.dark-theme .main {
+    background-color: #1a1a1a;
+}
+
+body.dark-theme .main .nav {
+    color: #b0b0b0;
+    background-color: #1a1a1a;
+}
+
+body.dark-theme .main .greet {
+    color: #666666;
+}
+
+/* Сообщения темная */
+body.dark-theme .message-content p {
+    background-color: transparent;
+    color: #e0e0e0;
+}
+
+body.dark-theme .message.user .message-content p {
+    background-color: #2d2d2d;
+    color: #ffffff;
+}
+
+/* Markdown темная тема */
+body.dark-theme .message-text {
+    background-color: transparent;
+    color: #e0e0e0;;
+}
+
+body.dark-theme .message-text code {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .message-text pre {
+    background-color: #0a0a0a;
+}
+
+body.dark-theme .message-text blockquote {
+    color: #999;
+}
+
+body.dark-theme .message-text th {
+    background-color: #1e1e1e;
+}
+
+body.dark-theme .message-text th,
+body.dark-theme .message-text td {
+    border-color: #333;
+}
+
+body.dark-theme .message-text hr {
+    border-top-color: #333;
+}
+
+body.dark-theme .loader hr {
+    background-color: #999 !important;
+    background: #999 !important; /* ← Добавь ЭТУ строку тоже */
+}
+
+/* Скроллбар темная тема */
+body.dark-theme .main::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+body.dark-theme .main::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+body.dark-theme .main::-webkit-scrollbar-button {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .main::-webkit-scrollbar-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Светлые стрелочки для темной темы */
+body.dark-theme .main::-webkit-scrollbar-button:vertical:decrement {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ccc' d='M6 4l-4 4h8z'/%3E%3C/svg%3E");
+}
+
+body.dark-theme .main::-webkit-scrollbar-button:vertical:increment {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ccc' d='M6 8l-4-4h8z'/%3E%3C/svg%3E");
+}
+
+/* Иконка переключателя темы */
+.theme-toggle {
+    cursor: pointer;
+    width: 24px !important;
+    height: 24px;
+    transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+:root {
+  --input-height: 120px; /* Начальное значение */
+}
+
+/* Placeholder который занимает место input в пустом состоянии */
+.input-box-placeholder {
+  height: var(--input-height);
+  transition: height 0.1s ease;
+  flex-shrink: 0; /* Не сжимается */
+}
+
+/* Чипсы должны идти сразу после placeholder */
+.empty-state-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 700px;
+  margin: 0 auto;
+  width: 100%;
+  gap: 0px; /* Уменьшил gap чтобы чипсы были ближе к input */
+}
+
+/* Убеждаемся что чипсы будут сдвигаться плавно */
+.empty-state-wrapper .cards {
+  transition: transform 0.1s ease;
+}
+
+/* ДОБАВЬ ЭТО В Main.css */
+
+/* === Auth Buttons в Nav === */
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Login Button */
+.login-btn {
+  background-color: transparent;
+  color: #585858;
+  border: 2px solid #e0e0e0;
+}
+
+.login-btn:hover {
+  border-color: #ff930f;
+  color: #ff930f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 147, 15, 0.2);
+}
+
+/* Sign Up Button с градиентом */
+.signup-btn {
+  background: linear-gradient(135deg, #ff930f 0%, #ff7a00 100%);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.signup-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.signup-btn:hover::before {
+  left: 100%;
+}
+
+.signup-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 147, 15, 0.4);
+}
+
+.signup-btn:active {
+  transform: translateY(0);
+}
+
+/* Темная тема */
+body.dark-theme .login-btn {
+  color: #e0e0e0;
+  border-color: #3c3c3c;
+}
+
+body.dark-theme .login-btn:hover {
+  border-color: #ff930f;
+  color: #ff930f;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .auth-buttons {
+    gap: 8px;
+  }
+
+  .auth-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}
