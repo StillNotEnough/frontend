@@ -1,36 +1,39 @@
-// src/components/Sidebar/Sidebar.tsx - ПОЛНЫЙ ИТОГОВЫЙ ФАЙЛ
+// src/components/Sidebar/Sidebar.tsx
 
 import "./Sidebar.css";
 import { assets } from "../../assets/assets";
 import { useState, useRef, useEffect, useContext } from "react";
 import Avatar from "../Avatar/Avatar";
 import { Context } from "../../context/Context";
-import { useNavigate } from "react-router-dom";
-import SettingsModal from "../SettingsModal/SettingsModal"; // НОВОЕ: импорт модалки
+import SettingsModal from "../SettingsModal/SettingsModal";
 
 const Sidebar = () => {
   const context = useContext(Context);
-  const navigate = useNavigate();
   
   if (!context) {
     throw new Error("Sidebar must be used within ContextProvider");
   }
 
-  // ОБНОВЛЕНО: добавлены theme и toggleTheme
   const { 
     sidebarExtended, 
     setSidebarExtended, 
     username, 
     logout,
-    theme,        // НОВОЕ
-    toggleTheme   // НОВОЕ
+    theme,
+    toggleTheme,
+    chats,
+    currentChatId,
+    createNewChat,
+    selectChat,
+    deleteChat
   } = context;
   
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // НОВОЕ: состояние модалки
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [openChatMenuId, setOpenChatMenuId] = useState<number | null>(null); // ID чата с открытым меню
   const profileRef = useRef<HTMLDivElement>(null);
+  const chatMenuRef = useRef<HTMLDivElement>(null);
 
-  // Данные пользователя из Context
   const userName = username || "Guest";
   const userPlan = "Free";
 
@@ -40,50 +43,118 @@ const Sidebar = () => {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);
       }
+      if (chatMenuRef.current && !chatMenuRef.current.contains(event.target as Node)) {
+        setOpenChatMenuId(null);
+      }
     };
 
-    if (showProfileMenu) {
+    if (showProfileMenu || openChatMenuId !== null) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showProfileMenu]);
+  }, [showProfileMenu, openChatMenuId]);
 
-  // Функция для выхода
   const handleLogout = () => {
     logout();
-    navigate('/login');
     setShowProfileMenu(false);
   };
 
-  // НОВОЕ: Функция для открытия настроек
   const handleSettingsClick = () => {
-    setShowProfileMenu(false); // Закрываем профильное меню
-    setIsSettingsOpen(true);   // Открываем модалку настроек
+    setShowProfileMenu(false);
+    setIsSettingsOpen(true);
+  };
+
+  const handleNewChat = () => {
+    createNewChat();
+  };
+
+  const handleSelectChat = (chatId: number) => {
+    selectChat(chatId);
+  };
+
+  // Открытие/закрытие меню чата
+  const handleChatMenuToggle = (e: React.MouseEvent, chatId: number) => {
+    e.stopPropagation(); // Чтобы не сработал клик по самому чату
+    setOpenChatMenuId(openChatMenuId === chatId ? null : chatId);
+  };
+
+  // Удаление чата
+  const handleDeleteChat = (e: React.MouseEvent, chatId: number) => {
+    e.stopPropagation();
+    deleteChat(chatId);
+    setOpenChatMenuId(null);
+  };
+
+  // Переименование чата (пока заглушка)
+  const handleRenameChat = (e: React.MouseEvent, chatId: number) => {
+    e.stopPropagation();
+    console.log("Rename chat:", chatId);
+    setOpenChatMenuId(null);
+    // TODO: Добавить логику переименования
   };
 
   return (
     <div className={`sidebar ${sidebarExtended ? 'extended' : 'collapsed'}`}>
       <div className="top">
-        <img onClick={() => setSidebarExtended(!sidebarExtended)} className="menu" src={assets.menu_icon} alt="" />
-        <div className="new-chat">
+        <img 
+          onClick={() => setSidebarExtended(!sidebarExtended)} 
+          className="menu" 
+          src={assets.menu_icon} 
+          alt="" 
+        />
+        
+        <div className="new-chat" onClick={handleNewChat}>
           <img src={assets.plus_icon} alt="" />
           {sidebarExtended ? <p>New Chat</p> : null}
         </div>
-        {sidebarExtended ? (
+        
+        {sidebarExtended && chats.length > 0 && (
           <div className="recent">
-            <p className="recent-title">Recent</p>
-            <div className="recent-entry">
-              <img src={assets.message_icon} alt="" />
-              <p>What is react ...</p>
-            </div>
+            <p className="recent-title">Recents</p>
+            {chats.map((chat) => (
+              <div 
+                key={chat.id}
+                className={`recent-entry ${currentChatId === chat.id ? 'active' : ''}`}
+                onClick={() => handleSelectChat(chat.id)}
+              >
+                <p className="recent-entry-text">{chat.title}</p>
+                
+                {/* Кнопка три точки */}
+                <div 
+                  className="recent-entry-menu-btn"
+                  onClick={(e) => handleChatMenuToggle(e, chat.id)}
+                >
+                  <img src={assets.dots_icon} alt="" />
+                </div>
+
+                {/* Выпадающее меню чата */}
+                {openChatMenuId === chat.id && (
+                  <div className="chat-options-menu" ref={chatMenuRef}>
+                    <div 
+                      className="chat-options-item"
+                      onClick={(e) => handleRenameChat(e, chat.id)}
+                    >
+                      <img src={assets.rename_icon} alt="" />
+                      <p>Rename</p>
+                    </div>
+                    <div 
+                      className="chat-options-item delete-item"
+                      onClick={(e) => handleDeleteChat(e, chat.id)}
+                    >
+                      <img src={assets.delete_icon} alt="" />
+                      <p>Delete</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-        ) : null}
+        )}
       </div>
 
-      {/* Профиль внизу */}
       <div className="bottom" ref={profileRef}>
         <div 
           className="profile-section"
@@ -98,10 +169,8 @@ const Sidebar = () => {
           )}
         </div>
 
-        {/* Выпадающее меню */}
         {showProfileMenu && (
           <div className="profile-menu">
-            {/* ОБНОВЛЕНО: добавлен onClick */}
             <div className="profile-menu-item" onClick={handleSettingsClick}>
               <img src={assets.setting_icon} alt="" />
               <p>Settings</p>
@@ -122,7 +191,6 @@ const Sidebar = () => {
         )}
       </div>
 
-      {/* НОВОЕ: Модалка настроек */}
       <SettingsModal 
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}

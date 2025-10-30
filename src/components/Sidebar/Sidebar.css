@@ -1,269 +1,560 @@
-.sidebar{
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background-color: #f0f4f9;
-    padding: 25px 15px;
-    position: relative;
-    transition: width 0.3s ease;
-    overflow: hidden;
-    width: 250px;
+.sidebar {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: #f0f4f9;
+  padding: 25px 15px;
+  position: relative;
+  transition: width 0.3s ease;
+  overflow: hidden;
+  width: 250px;
 }
 
 /* Когда sidebar закрыт - уменьшаем ширину */
 .sidebar.collapsed {
-    width: 60px;
-    padding: 25px 10px;
-    align-items: center;
+  width: 60px;
+  padding: 25px 10px;
+  align-items: center;
 }
 
 /* Кнопка New Chat в collapsed - только иконка */
 .sidebar.collapsed .new-chat {
-    width: 40px;
-    height: 40px;
-    padding: 8px;
-    justify-content: center;
-    border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  justify-content: center;
+  border-radius: 50%;
 }
 
 /* Скрываем текст в collapsed */
 .sidebar.collapsed .new-chat p {
-    display: none;
+  display: none;
 }
 
 /* Профиль в collapsed - только аватар */
 .sidebar.collapsed .profile-section {
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  justify-content: center;
 }
 
 .sidebar.collapsed .profile-info {
-    display: none;
+  display: none;
 }
 
 /* Центрирование top секции в collapsed */
 .sidebar.collapsed .top {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Когда sidebar открыт - полная ширина */
 .sidebar.extended {
-    width: 250px;
+  width: 250px;
 }
 
 /* Градиентная вертикальная линия справа */
 .sidebar::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: linear-gradient(180deg, #ff930f, #fff95b);
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, #ff930f, #fff95b);
 }
 
-.sidebar img{
-    width: 20px;
+.sidebar img {
+  width: 20px;
 }
 
-.sidebar .menu{
-    display: block;
-    cursor: pointer;
-    transition: margin 0.3s ease;
+.sidebar .menu {
+  display: block;
+  cursor: pointer;
+  transition: margin 0.3s ease;
 }
 
 .sidebar.extended .menu {
-    margin-left: 10px;
+  margin-left: 10px;
 }
 
 .sidebar.collapsed .menu {
-    margin-left: 0;
+  margin-left: 0;
 }
 
-.sidebar .new-chat{
-    margin-top: 50px;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    background-color: #e6eaf1;
-    border-radius: 50px;
-    font-size: 14px;
-    color: grey;
-    cursor: pointer;
-    transition: all 0.3s ease;
+.sidebar .new-chat {
+  margin-top: 20px; /* Уменьшено с 50px до 20px - ближе к кнопке меню */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background-color: #e6eaf1; /* Серый фон */
+  border-radius: 12px;
+  font-size: 14px;
+  color: #666; /* Серый текст вместо grey */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.sidebar .recent{
-    display: flex;
-    flex-direction: column;
+.sidebar .new-chat:hover {
+  background-color: #ffe8cc; /* Светло-оранжевый фон */
+  color: #ff930f; /* Оранжевый текст из градиента */
 }
 
-.sidebar .recent-title{
-    margin-top: 30px;
-    margin-bottom: 20px;
-    color: #282828;
+/* Active эффект - при нажатии */
+.sidebar .new-chat:active {
+  background-color: #ffd9a8; /* Более насыщенный оранжевый */
+  transform: scale(0.98);
 }
 
-.sidebar .recent-entry{
-    display: flex;
-    align-items: start;
-    gap: 10px;
-    padding: 10px;
-    padding-right: 40px;
-    border-radius: 50px;
-    color: #282828;
-    cursor: pointer;
+.sidebar .new-chat img {
+  width: 15px; /* Уменьшено с 20px до 16px */
+  height: 20px;
 }
 
-.sidebar .recent-entry:hover{
-    background-color: #e2e6eb;
+.sidebar .recent {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px; /* Добавили отступ сверху для визуального разделения */
+  margin-right: -15px; /* Сдвигаем scrollbar вправо к градиентной линии */
+  padding-right: 15px; /* Компенсируем отрицательный margin для контента */
+}
+
+.sidebar .recent-title {
+  margin-top: 0px; /* Увеличили с 30px до 50px */
+  margin-bottom: 5px;
+  color: #282828;
+  padding-left: 7px; /* Добавь эту строку */
+  font-size: 13px; /* Добавь эту строку для уменьшения шрифта */
+}
+
+.sidebar .recent-entry {
+  display: flex;
+  align-items: center; /* Изменено с start на center */
+  padding: 10px 15px 10px 7px; /* Увеличен горизонтальный padding */
+  margin-right: 8px; /* Отступ для scrollbar */
+  border-radius: 12px; /* Изменено с 50px - как у auth кнопок */
+  color: #282828;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Текст чата с ellipsis */
+.sidebar .recent-entry-text {
+  white-space: nowrap; /* Текст в одну строку */
+  overflow: hidden; /* Скрыть переполнение */
+  text-overflow: ellipsis; /* Показать ... */
+  flex: 1; /* Занять всё доступное место */
+  font-size: 14px;
+  margin: 0;
+}
+
+.sidebar .recent-entry:hover {
+  background-color: #e2e6eb;
 }
 
 /* Профиль */
-.sidebar .bottom{
-    position: relative;
+.sidebar .bottom {
+  position: relative;
 }
 
-.profile-section{
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: background-color 0.2s;
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.profile-section:hover{
-    background-color: #e2e6eb;
+.profile-section:hover {
+  background-color: #e2e6eb;
 }
 
-.profile-info{
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    overflow: hidden;
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
 }
 
-.profile-name{
-    font-size: 14px;
-    font-weight: 600;
-    color: #282828;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.profile-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #282828;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.profile-plan{
-    font-size: 12px;
-    color: #666;
-    font-weight: 400;
+.profile-plan {
+  font-size: 12px;
+  color: #666;
+  font-weight: 400;
 }
 
 /* Выпадающее меню */
-.profile-menu{
-    position: absolute;
-    bottom: 70px;
-    left: 10px;
-    width: 200px;
-    background-color: #ffffff;
-    border: 1px solid #e2e6eb;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 8px;
-    z-index: 1000;
-    animation: slideUp 0.2s ease-out;
+.profile-menu {
+  position: absolute;
+  bottom: 70px;
+  left: 10px;
+  width: 200px;
+  background-color: #ffffff;
+  border: 1px solid #e2e6eb;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  z-index: 1000;
+  animation: slideUp 0.2s ease-out;
 }
 
 @keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.profile-menu-item{
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s;
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.profile-menu-item:hover{
-    background-color: #f0f4f9;
+.profile-menu-item:hover {
+  background-color: #f0f4f9;
 }
 
-.profile-menu-item img{
-    width: 20px;
-    height: 20px;
+.profile-menu-item img {
+  width: 20px;
+  height: 20px;
 }
 
-.profile-menu-item p{
-    font-size: 14px;
-    color: #282828;
-    margin: 0;
+.profile-menu-item p {
+  font-size: 14px;
+  color: #282828;
+  margin: 0;
 }
 
 /* Темная тема для sidebar */
 .dark-theme .sidebar {
-    background-color: #2d2d2d;
+  background-color: #2d2d2d;
 }
 
 .dark-theme .sidebar img {
-    filter: brightness(0) invert(1);
+  filter: brightness(0) invert(1);
 }
 
 .dark-theme .sidebar .new-chat {
-    background-color: #3d3d3d;
-    color: rgba(255, 255, 255, 0.7);
+  background-color: #3d3d3d;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dark-theme .sidebar .new-chat:hover {
+  background-color: #4a3a2a; /* Темно-оранжевый оттенок */
+  color: #ff930f;
+}
+
+.dark-theme .sidebar .new-chat:active {
+  background-color: #5a4a3a;
 }
 
 .dark-theme .sidebar .recent-title {
-    color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .dark-theme .sidebar .recent-entry {
-    color: white;
+  color: white;
 }
 
 .dark-theme .sidebar .recent-entry:hover {
-    background-color: #3d3d3d;
+  background-color: #3d3d3d;
 }
 
 .dark-theme .profile-section:hover {
-    background-color: #3d3d3d;
+  background-color: #3d3d3d;
 }
 
 .dark-theme .profile-name {
-    color: white;
+  color: white;
 }
 
 .dark-theme .profile-plan {
-    color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .dark-theme .profile-menu {
-    background-color: #2d2d2d;
-    border-color: #3d3d3d;
+  background-color: #2d2d2d;
+  border-color: #3d3d3d;
 }
 
 .dark-theme .profile-menu-item:hover {
-    background-color: #3d3d3d;
+  background-color: #3d3d3d;
 }
 
 .dark-theme .profile-menu-item p {
-    color: white;
+  color: white;
+}
+
+/* ===== ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ЧАТОВ ===== */
+
+/* Активный чат - подсветка */
+.sidebar .recent-entry.active {
+  background-color: #e2e6eb;
+  font-weight: 600;
+}
+
+.dark-theme .sidebar .recent-entry.active {
+  background-color: #3d3d3d;
+}
+
+/* Скроллинг для списка чатов */
+.sidebar .recent {
+  max-height: calc(
+    100vh - 250px
+  ); /* Увеличили с 300px до 250px - больше места для чатов */
+  overflow-y: auto;
+  scrollbar-width: thin; /* Для Firefox */
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent; /* Для Firefox */
+}
+
+/* ===== МИНИМАЛИСТИЧНЫЙ SCROLLBAR (Webkit/Chrome/Safari) ===== */
+
+/* Ширина scrollbar */
+.sidebar .recent::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Трек (фон) scrollbar - прозрачный */
+.sidebar .recent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Ползунок scrollbar - светлая тема */
+.sidebar .recent::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+/* Ползунок при наведении - светлая тема */
+.sidebar .recent::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Стрелочки scrollbar - светлая тема */
+.sidebar .recent::-webkit-scrollbar-button {
+  background: rgba(0, 0, 0, 0.1);
+  height: 16px;
+  transition: background 0.2s ease;
+}
+
+.sidebar .recent::-webkit-scrollbar-button:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Стрелка вверх - светлая тема */
+.sidebar .recent::-webkit-scrollbar-button:vertical:decrement {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 4l-4 4h8z'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Стрелка вниз - светлая тема */
+.sidebar .recent::-webkit-scrollbar-button:vertical:increment {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8l-4-4h8z'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* ===== ТЕМНАЯ ТЕМА - SCROLLBAR ===== */
+
+/* Firefox scrollbar - темная тема */
+.dark-theme .sidebar .recent {
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+/* Ползунок scrollbar - темная тема */
+.dark-theme .sidebar .recent::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Ползунок при наведении - темная тема */
+.dark-theme .sidebar .recent::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Стрелочки scrollbar - темная тема */
+.dark-theme .sidebar .recent::-webkit-scrollbar-button {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .sidebar .recent::-webkit-scrollbar-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Светлые стрелочки для темной темы - вверх */
+.dark-theme .sidebar .recent::-webkit-scrollbar-button:vertical:decrement {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ccc' d='M6 4l-4 4h8z'/%3E%3C/svg%3E");
+}
+
+/* Светлые стрелочки для темной темы - вниз */
+.dark-theme .sidebar .recent::-webkit-scrollbar-button:vertical:increment {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ccc' d='M6 8l-4-4h8z'/%3E%3C/svg%3E");
+}
+
+/* Плавная анимация при клике */
+.sidebar .recent-entry {
+  transition: all 0.2s ease;
+}
+
+/* Контейнер для чата с меню */
+.sidebar .recent-entry {
+  display: flex;
+  align-items: center;
+  padding: 10px 7px 10px 7px;
+  margin-right: 8px;
+  border-radius: 12px;
+  color: #282828;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative; /* Для позиционирования меню */
+}
+
+/* Текст чата с ellipsis */
+.sidebar .recent-entry-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Кнопка три точки */
+.sidebar .recent-entry-menu-btn {
+  display: none; /* Скрыта по умолчанию */
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex-shrink: 0; /* Не сжимается */
+  margin-left: 8px;
+}
+
+/* Показываем три точки при наведении на чат */
+.sidebar .recent-entry:hover .recent-entry-menu-btn {
+  display: block;
+}
+
+.sidebar .recent-entry-menu-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar .recent-entry-menu-btn img {
+  width: 16px;
+  height: 16px;
+}
+
+/* Выпадающее меню чата */
+.chat-options-menu {
+  position: absolute;
+  right: 10px; /* Изменено с 30px */
+  top: 40px; /* Добавлено - появляется ниже кнопки */
+  background-color: #ffffff;
+  border: 1px solid #e2e6eb;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  z-index: 1000;
+  min-width: 160px;
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Пункты меню */
+.chat-options-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.chat-options-item:hover {
+  background-color: #f0f4f9;
+}
+
+.chat-options-item img {
+  width: 18px;
+  height: 18px;
+}
+
+.chat-options-item p {
+  font-size: 14px;
+  color: #282828;
+  margin: 0;
+}
+
+/* Кнопка удаления - красный текст */
+.chat-options-item.delete-item:hover {
+  background-color: #fee;
+}
+
+.chat-options-item.delete-item p {
+  color: #d32f2f;
+}
+
+/* Темная тема для меню */
+.dark-theme .sidebar .recent-entry-menu-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .chat-options-menu {
+  background-color: #2d2d2d;
+  border-color: #3d3d3d;
+}
+
+.dark-theme .chat-options-item:hover {
+  background-color: #3d3d3d;
+}
+
+.dark-theme .chat-options-item p {
+  color: white;
+}
+
+.dark-theme .chat-options-item.delete-item:hover {
+  background-color: #4a2020;
+}
+
+.dark-theme .chat-options-item.delete-item p {
+  color: #ff6b6b;
 }

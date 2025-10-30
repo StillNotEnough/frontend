@@ -13,6 +13,9 @@ import code_icon from './code_icon.png'
 import send_icon from './send_icon.png'
 import gemini_icon from './gemini_icon.png'
 import logout_icon from './logout_icon.png'
+import dots_icon from './dots_icon.png'
+import delete_icon from './delete_icon.png'
+import rename_icon from './rename_icon.png'
 
 import moon_icon from './moon_icon.svg'
 import sun_icon from './sun_icon.svg'
@@ -32,7 +35,10 @@ export const assets = {
     code_icon,
     send_icon,
     gemini_icon,
-    moon_icon,    // добавь эту строку
+    moon_icon,
     sun_icon,
-    logout_icon
+    logout_icon,
+    dots_icon,
+    delete_icon,
+    rename_icon
 }

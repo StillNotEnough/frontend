@@ -1,6 +1,9 @@
+// src/context/Context.tsx - ОБНОВЛЕННАЯ ВЕРСИЯ
+
 import { createContext, useState, useEffect } from 'react'
 import { sendChatMessageStream } from '../services/aiService'
 import authService from '../services/authService'
+import chatService, { type Chat, type ChatMessage as ApiChatMessage } from '../services/chatService'
 
 export interface Message {
   role: 'user' | 'assistant'
@@ -24,6 +27,13 @@ export interface ContextType {
   isAuthenticated: boolean
   username: string | null
   logout: () => void
+  // НОВОЕ: для чатов
+  chats: Chat[]
+  currentChatId: number | null
+  loadChats: () => Promise<void>
+  createNewChat: () => Promise<void>
+  selectChat: (chatId: number) => Promise<void>
+  deleteChat: (chatId: number) => Promise<void>
 }
 
 export const Context = createContext<ContextType | undefined>(undefined)
@@ -57,26 +67,27 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated())
   const [username, setUsername] = useState(authService.getUsername())
 
+  // НОВОЕ: состояние для чатов
+  const [chats, setChats] = useState<Chat[]>([])
+  const [currentChatId, setCurrentChatId] = useState<number | null>(null)
+
   // Проверяем аутентификацию при загрузке
   useEffect(() => {
     const checkAuth = async () => {
       const refreshToken = authService.getRefreshToken()
       
-      // Если нет refresh token - точно не залогинен
       if (!refreshToken) {
         setIsAuthenticated(false)
         setUsername(null)
         return
       }
 
-      // Проверяем не истек ли refresh token
       if (authService.isRefreshTokenExpired()) {
         console.log('🔴 Refresh token expired on load')
         logout()
         return
       }
 
-      // Если access token истек или скоро истечет - обновляем
       if (authService.isAccessTokenExpired() || authService.willAccessTokenExpireSoon()) {
         console.log('🔄 Access token expired/expiring on page load, refreshing...')
         
@@ -91,7 +102,6 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
           logout()
         }
       } else {
-        // Токены валидны
         setIsAuthenticated(true)
         setUsername(authService.getUsername())
       }
@@ -100,11 +110,21 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
     checkAuth()
   }, [])
 
+  // НОВОЕ: загружаем чаты при логине
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadChats()
+    } else {
+      setChats([])
+      setCurrentChatId(null)
+      setMessages([])
+    }
+  }, [isAuthenticated])
+
   // Автоматическое обновление access token
   useEffect(() => {
     if (!isAuthenticated) return
 
-    // Проверяем каждые 5 минут нужно ли обновить токен
     const interval = setInterval(async () => {
       if (authService.willAccessTokenExpireSoon()) {
         console.log('🔄 Access token expiring soon, refreshing...')
@@ -117,7 +137,7 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
           logout()
         }
       }
-    }, 5 * 60 * 1000) // Каждые 5 минут
+    }, 5 * 60 * 1000)
 
     return () => clearInterval(interval)
   }, [isAuthenticated])
@@ -132,7 +152,7 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
         alert('Your session has expired. Please log in again.')
         logout()
       }
-    }, 60 * 60 * 1000) // Каждый час
+    }, 60 * 60 * 1000)
 
     return () => clearInterval(interval)
   }, [isAuthenticated])
@@ -142,26 +162,106 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
   }
 
   const logout = async () => {
-    // Отправляем logout на бекенд
     await authService.logoutOnBackend()
-    
-    // Очищаем локально
     authService.logout()
     setIsAuthenticated(false)
     setUsername(null)
     setMessages([])
+    setChats([])
+    setCurrentChatId(null)
   }
 
+  // НОВОЕ: загрузить чаты
+  const loadChats = async () => {
+    try {
+      const fetchedChats = await chatService.getRecentChats(20)
+      setChats(fetchedChats)
+    } catch (error) {
+      console.error('Failed to load chats:', error)
+    }
+  }
+
+  // НОВОЕ: создать новый чат
+  const createNewChat = async () => {
+    try {
+      const newChat = await chatService.createChat('New Chat', subject)
+      setChats(prev => [newChat, ...prev])
+      setCurrentChatId(newChat.id)
+      setMessages([])
+    } catch (error) {
+      console.error('Failed to create chat:', error)
+    }
+  }
+
+  // НОВОЕ: выбрать чат
+  const selectChat = async (chatId: number) => {
+    try {
+      setLoading(true)
+      const chatMessages = await chatService.getChatMessages(chatId)
+      
+      // Конвертируем API сообщения в формат для UI
+      const convertedMessages: Message[] = chatMessages.map((msg: ApiChatMessage) => ({
+        role: msg.role,
+        content: msg.content
+      }))
+      
+      setMessages(convertedMessages)
+      setCurrentChatId(chatId)
+    } catch (error) {
+      console.error('Failed to load chat messages:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // НОВОЕ: удалить чат
+  const deleteChat = async (chatId: number) => {
+    try {
+      await chatService.deleteChat(chatId)
+      setChats(prev => prev.filter(chat => chat.id !== chatId))
+      
+      // Если удаляем текущий чат - очищаем
+      if (currentChatId === chatId) {
+        setCurrentChatId(null)
+        setMessages([])
+      }
+    } catch (error) {
+      console.error('Failed to delete chat:', error)
+    }
+  }
+
+  // ✨ ОБНОВЛЕННОЕ: sendMessage с автоматическим формированием title
   const sendMessage = async (prompt: string) => {
     try {
       setLoading(true)
       
+      // Если нет текущего чата и пользователь залогинен - создаем новый
+      let chatId = currentChatId
+      if (!chatId && isAuthenticated) {
+        // Создаем чат с дефолтным title "New Chat"
+        // Бэкенд автоматически обновит title при первом сообщении пользователя
+        const newChat = await chatService.createChat('New Chat', subject)
+        chatId = newChat.id
+        setCurrentChatId(chatId)
+        setChats(prev => [newChat, ...prev])
+      }
+
       const userMessage: Message = { role: 'user', content: prompt }
       setMessages((prev: Message[]) => [...prev, userMessage])
       setInput('')
 
+      // Сохраняем user сообщение в БД (если залогинен)
+      if (isAuthenticated && chatId) {
+        await chatService.addMessage(chatId, prompt, 'user', subject)
+        // ✨ НОВОЕ: После сохранения первого сообщения обновляем список чатов
+        // чтобы получить обновленный title
+        await loadChats()
+      }
+
       const assistantMessage: Message = { role: 'assistant', content: '' }
       setMessages((prev: Message[]) => [...prev, assistantMessage])
+
+      let assistantContent = ''
 
       await sendChatMessageStream(
         {
@@ -171,6 +271,7 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
           stream: true
         },
         (chunk: string) => {
+          assistantContent += chunk
           setMessages((prev: Message[]) => {
             const newMessages = [...prev]
             const lastIndex = newMessages.length - 1
@@ -178,14 +279,24 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
             if (lastIndex >= 0 && newMessages[lastIndex].role === 'assistant') {
               newMessages[lastIndex] = {
                 ...newMessages[lastIndex],
-                content: newMessages[lastIndex].content + chunk
+                content: assistantContent
               }
             }
             
             return newMessages
           })
         },
-        () => {
+        async () => {
+          // Сохраняем assistant сообщение в БД после завершения стриминга
+          if (isAuthenticated && chatId) {
+            try {
+              await chatService.addMessage(chatId, assistantContent, 'assistant', subject)
+              // Обновляем список чатов чтобы updated_at обновился
+              await loadChats()
+            } catch (error) {
+              console.error('Failed to save assistant message:', error)
+            }
+          }
           setLoading(false)
         },
         (error: Error) => {
@@ -225,7 +336,14 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
         sendMessage,
         isAuthenticated,
         username,
-        logout
+        logout,
+        // НОВОЕ
+        chats,
+        currentChatId,
+        loadChats,
+        createNewChat,
+        selectChat,
+        deleteChat
       }}
     >
       {children}
