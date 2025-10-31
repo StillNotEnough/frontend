@@ -65,10 +65,14 @@
 
 /* В пустом состоянии - просто контейнер */
 .input-box-overlay.empty-state .input-container {
-  margin-bottom: 20px;
+  padding: 0 20px 20px 20px;
+  background: linear-gradient(to top, white 70%, transparent);
 }
 
-/* В состоянии с сообщениями - добавляем градиент и отступы */
+body.dark-theme .input-box-overlay.empty-state .input-container {
+  background: linear-gradient(to top, #1a1a1a 70%, transparent);
+}
+
 .input-box-overlay.with-messages .input-container {
   padding: 0 20px 20px 20px;
   background: linear-gradient(to top, white 70%, transparent);

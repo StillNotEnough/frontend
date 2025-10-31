@@ -1,11 +1,9 @@
-import { useContext, useLayoutEffect, useRef } from "react";
-import ReactMarkdown from "react-markdown";
-import rehypeHighlight from "rehype-highlight";
-import rehypeKatex from "rehype-katex";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
+// src/components/Main/Main.tsx - ОБНОВЛЕННАЯ ВЕРСИЯ
+
+import { useContext, useLayoutEffect, useRef, useMemo } from "react";
 import { assets } from "../../assets/assets";
 import { Context } from "../../context/Context";
+import Message from "../Message/Message"; // ✨ ИМПОРТ НОВОГО КОМПОНЕНТА
 import "./Main.css";
 
 interface MainProps {
@@ -14,20 +12,15 @@ interface MainProps {
 
 const Main = ({ onOpenAuthModal }: MainProps) => {
   const mainRef = useRef<HTMLDivElement>(null);
-  // --- ref для ПОСЛЕДНЕГО ОТПРАВЛЕННОГО пользователем сообщения (до ответа ИИ) ---
   const lastSentUserMessageRef = useRef<HTMLDivElement>(null);
-
-  // --- ref для отслеживания предыдущего состояния messages ---
-  const previousMessagesRef = useRef<any[]>([]); // Лучше заменить на конкретный тип, например Message[], если он определён
+  const previousMessagesRef = useRef<any[]>([]);
 
   const context = useContext(Context);
 
   if (!context) {
-    // <-- Проверка сразу после получения
     throw new Error("Main must be used within ContextProvider");
   }
 
-  // Деструктуризация *после* проверки
   const {
     input,
     messages,
@@ -37,14 +30,32 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
     isAuthenticated,
   } = context;
 
-  // --- useLayoutEffect для автоскролла ---
+  // ✨ ОПТИМИЗАЦИЯ 1: useMemo для рендера сообщений
+  // Сообщения рендерятся только когда messages изменились
+  const renderedMessages = useMemo(() => {
+    return messages.map((msg, index) => {
+      const isLastUserMessage =
+        msg.role === "user" &&
+        messages[index + 1] &&
+        messages[index + 1].role === "assistant";
+
+      return (
+        <div
+          key={index}
+          className={`message ${msg.role}`}
+          ref={isLastUserMessage ? lastSentUserMessageRef : null}
+        >
+          <Message role={msg.role} content={msg.content} />
+        </div>
+      );
+    });
+  }, [messages]); // ✨ Только когда messages изменились!
+
+  // useLayoutEffect для автоскролла
   useLayoutEffect(() => {
-    // Получаем предыдущее состояние messages
     const prevMessages = previousMessagesRef.current;
-    // Обновляем ref на текущее состояние
     previousMessagesRef.current = messages;
 
-    // Проверяем, добавилось ли новое сообщение ИИ сразу после сообщения юзера
     if (messages.length > prevMessages.length) {
       const lastMessage = messages[messages.length - 1];
       const secondToLastMessage = messages[messages.length - 2];
@@ -54,34 +65,15 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
         secondToLastMessage &&
         secondToLastMessage.role === "user"
       ) {
-        console.log(
-          "Обнаружено новое сообщение ИИ после сообщения юзера. Пытаемся прокрутить к юзерскому сообщению."
-        );
-
         if (lastSentUserMessageRef.current && mainRef.current) {
-          console.log(
-            "Прокручиваем к сообщению юзера (предпоследнему в списке)."
-          );
           const messageElement = lastSentUserMessageRef.current;
           const containerElement = mainRef.current;
-
           const offsetTop = messageElement.offsetTop;
-          console.log("offsetTop сообщения юзера:", offsetTop);
-          console.log("Текущий scrollTop .main:", containerElement.scrollTop);
-
           containerElement.scrollTop = offsetTop;
-          console.log(
-            "Установлен scrollTop .main:",
-            containerElement.scrollTop
-          );
-        } else {
-          console.log(
-            "Ref на сообщение юзера не установлен или mainRef отсутствует."
-          );
         }
       }
     }
-  }, [messages]); // <-- Зависимость: только messages
+  }, [messages]);
 
   // Выбор предмета при клике на карточку
   const handleCardClick = (selectedSubject: string) => {
@@ -90,11 +82,9 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
 
   return (
     <div className="main" ref={mainRef}>
-      {/* НОВЫЙ NAV */}
       <div className="nav">
         <p>NoNameAI</p>
 
-        {/* Показываем кнопки только если НЕ залогинен */}
         {!isAuthenticated && (
           <div className="auth-buttons">
             <button
@@ -160,36 +150,8 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
           </div>
         ) : (
           <div className="result">
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`message ${msg.role}`}
-                // --- УСЛОВНОЕ НАЗНАЧЕНИЕ REFA ---
-                // Устанавливаем ref на сообщение юзера, если за ним сразу идёт сообщение ИИ.
-                ref={
-                  msg.role === "user" &&
-                  messages[index + 1] &&
-                  messages[index + 1].role === "assistant"
-                    ? lastSentUserMessageRef
-                    : null
-                }
-              >
-                <div className="message-content">
-                  {msg.role === "assistant" ? (
-                    <div className="message-text">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkMath]}
-                        rehypePlugins={[rehypeHighlight, rehypeKatex]}
-                      >
-                        {msg.content}
-                      </ReactMarkdown>
-                    </div>
-                  ) : (
-                    <p>{msg.content}</p>
-                  )}
-                </div>
-              </div>
-            ))}
+            {/* ✨ ИСПОЛЬЗУЕМ МЕМОИЗИРОВАННЫЕ СООБЩЕНИЯ */}
+            {renderedMessages}
 
             {loading && (
               <div className="message assistant">
