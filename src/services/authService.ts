@@ -1,6 +1,7 @@
-// src/services/authService.ts - ПОЛНОСТЬЮ ЗАМЕНИ
+// src/services/authService.ts - ОБНОВЛЕННЫЙ С /me ЭНДПОИНТОМ
 
-const API_BASE_URL = 'http://localhost:8080/api/v1/auth'; // Измени на свой URL
+const API_BASE_URL = 'http://localhost:8080/api/v1/auth';
+const USERS_API_URL = 'http://localhost:8080/api/v1/users';
 
 export interface LoginRequest {
   username: string;
@@ -21,6 +22,19 @@ export interface TokenPairResponse {
   username: string;
 }
 
+// ✨ НОВЫЙ: интерфейс для данных пользователя из /me
+export interface CurrentUserResponse {
+  id: number;
+  username: string;
+  email: string;
+  role: 'USER' | 'ADMIN';
+  profilePictureUrl: string | null;
+  oauthProvider: string | null;
+  createdAt: string;
+  subscriptionPlan: string;  // "FREE", "PRO", "ENTERPRISE"
+  subscriptionExpiresAt: string | null;
+}
+
 export interface ErrorResponse {
   timestamp: string;
   status: number;
@@ -32,7 +46,10 @@ export interface ErrorResponse {
 class AuthService {
   private refreshPromise: Promise<TokenPairResponse> | null = null;
 
-  // Логин
+  // ========================================
+  // 🔐 AUTHENTICATION METHODS
+  // ========================================
+
   async login(credentials: LoginRequest): Promise<TokenPairResponse> {
     try {
       const response = await fetch(`${API_BASE_URL}/login`, {
@@ -67,7 +84,6 @@ class AuthService {
     }
   }
 
-  // Регистрация
   async signUp(userData: SignUpRequest): Promise<TokenPairResponse> {
     try {
       const response = await fetch(`${API_BASE_URL}/signup`, {
@@ -102,9 +118,98 @@ class AuthService {
     }
   }
 
-  // Обновление токенов
+  // ========================================
+  // ✨ НОВОЕ: USER INFO METHODS
+  // ========================================
+
+  /**
+   * ✨ НОВЫЙ МЕТОД: Получить информацию о текущем пользователе из /me
+   * Возвращает актуальные данные из БД, НЕ парсит JWT!
+   */
+  async getCurrentUser(): Promise<CurrentUserResponse> {
+    const accessToken = await this.getValidAccessToken();
+    
+    if (!accessToken) {
+      throw new Error('No valid access token available');
+    }
+
+    try {
+      const response = await fetch(`${USERS_API_URL}/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.logout();
+          throw new Error('Unauthorized. Please login again.');
+        }
+        throw new Error('Failed to fetch user info');
+      }
+
+      const userData: CurrentUserResponse = await response.json();
+      
+      // Сохраняем username локально для быстрого доступа в UI
+      this.saveUsername(userData.username);
+      
+      console.log('✅ User info fetched from /me endpoint');
+      return userData;
+      
+    } catch (error) {
+      console.error('Get current user error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * ✨ НОВЫЙ МЕТОД: Обновить информацию текущего пользователя
+   */
+  async updateCurrentUser(updates: { 
+    email?: string; 
+    profilePictureUrl?: string 
+  }): Promise<CurrentUserResponse> {
+    const accessToken = await this.getValidAccessToken();
+    
+    if (!accessToken) {
+      throw new Error('No valid access token available');
+    }
+
+    try {
+      const response = await fetch(`${USERS_API_URL}/me`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.logout();
+          throw new Error('Unauthorized. Please login again.');
+        }
+        throw new Error('Failed to update user info');
+      }
+
+      const userData: CurrentUserResponse = await response.json();
+      console.log('✅ User info updated');
+      return userData;
+      
+    } catch (error) {
+      console.error('Update current user error:', error);
+      throw error;
+    }
+  }
+
+  // ========================================
+  // 🔄 TOKEN MANAGEMENT
+  // ========================================
+
   async refreshTokens(): Promise<TokenPairResponse> {
-    // Предотвращаем множественные одновременные запросы на refresh
     if (this.refreshPromise) {
       return this.refreshPromise;
     }
@@ -140,8 +245,6 @@ class AuthService {
       }
 
       const data: TokenPairResponse = await response.json();
-      
-      // Сохраняем новые токены
       this.saveTokens(data);
       
       console.log('✅ Tokens refreshed successfully');
@@ -149,13 +252,11 @@ class AuthService {
       
     } catch (error) {
       console.error('Token refresh failed:', error);
-      // Если refresh не удался - разлогиниваем
       this.logout();
       throw error;
     }
   }
 
-  // Logout на бекенде
   async logoutOnBackend(): Promise<void> {
     const refreshToken = this.getRefreshToken();
     
@@ -175,19 +276,19 @@ class AuthService {
     }
   }
 
-  // Сохранить оба токена
+  // ========================================
+  // 💾 LOCAL STORAGE METHODS
+  // ========================================
+
   saveTokens(data: TokenPairResponse) {
-    // Access Token
     localStorage.setItem('access_token', data.accessToken);
     const accessExpiration = Date.now() + (data.accessTokenExpiresIn * 1000);
     localStorage.setItem('access_token_expiration', accessExpiration.toString());
     
-    // Refresh Token
     localStorage.setItem('refresh_token', data.refreshToken);
     const refreshExpiration = Date.now() + (data.refreshTokenExpiresIn * 1000);
     localStorage.setItem('refresh_token_expiration', refreshExpiration.toString());
     
-    // Username
     localStorage.setItem('username', data.username);
 
     console.log('✅ Tokens saved:', {
@@ -196,27 +297,31 @@ class AuthService {
     });
   }
 
-  // Сохранить username
   saveUsername(username: string) {
     localStorage.setItem('username', username);
   }
 
-  // Получить access token
   getAccessToken(): string | null {
     return localStorage.getItem('access_token');
   }
 
-  // Получить refresh token
   getRefreshToken(): string | null {
     return localStorage.getItem('refresh_token');
   }
 
-  // Получить username
+  /**
+   * Получить username из localStorage
+   * ВНИМАНИЕ: Это для быстрого доступа в UI
+   * Для получения полных данных используйте getCurrentUser()
+   */
   getUsername(): string | null {
     return localStorage.getItem('username');
   }
 
-  // Проверка истек ли access token
+  // ========================================
+  // ✅ TOKEN VALIDATION
+  // ========================================
+
   isAccessTokenExpired(): boolean {
     const expiration = localStorage.getItem('access_token_expiration');
     if (!expiration) {
@@ -236,7 +341,6 @@ class AuthService {
     return isExpired;
   }
 
-  // Проверка истек ли refresh token
   isRefreshTokenExpired(): boolean {
     const expiration = localStorage.getItem('refresh_token_expiration');
     if (!expiration) {
@@ -256,7 +360,6 @@ class AuthService {
     return isExpired;
   }
 
-  // Проверка скоро ли истечет access token (за 5 минут до истечения)
   willAccessTokenExpireSoon(): boolean {
     const expiration = localStorage.getItem('access_token_expiration');
     if (!expiration) return true;
@@ -265,14 +368,12 @@ class AuthService {
     return Date.now() > (parseInt(expiration) - fiveMinutes);
   }
 
-  // Проверка аутентификации
   isAuthenticated(): boolean {
     const accessToken = this.getAccessToken();
     const refreshToken = this.getRefreshToken();
     
     if (!accessToken || !refreshToken) return false;
     
-    // Если refresh token истек - не авторизован
     if (this.isRefreshTokenExpired()) {
       this.logout();
       return false;
@@ -281,7 +382,6 @@ class AuthService {
     return true;
   }
 
-  // Полный logout
   logout() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('access_token_expiration');
@@ -291,9 +391,7 @@ class AuthService {
     console.log('✅ Logged out locally');
   }
 
-  // Получить access token, обновив если нужно
   async getValidAccessToken(): Promise<string | null> {
-    // Если access token истек или скоро истечет - обновляем
     if (this.isAccessTokenExpired() || this.willAccessTokenExpireSoon()) {
       console.log('🔄 Access token expired or expiring soon, refreshing...');
       

@@ -1,8 +1,8 @@
-// src/context/Context.tsx - ОБНОВЛЕННАЯ ВЕРСИЯ
+// src/context/Context.tsx - С /me ИНТЕГРАЦИЕЙ (AI логика НЕ ТРОНУТА!)
 
 import { createContext, useState, useEffect } from "react";
 import { sendChatMessageStream } from "../services/aiService";
-import authService from "../services/authService";
+import authService, { type CurrentUserResponse } from "../services/authService"; // ✨ Добавлен CurrentUserResponse
 import chatService, {
   type Chat,
   type ChatMessage as ApiChatMessage,
@@ -29,8 +29,10 @@ export interface ContextType {
   sendMessage: (prompt: string) => Promise<void>;
   isAuthenticated: boolean;
   username: string | null;
+  user: CurrentUserResponse | null; // ✨ НОВОЕ: полные данные пользователя
+  userLoading: boolean; // ✨ НОВОЕ
+  refreshUser: () => Promise<void>; // ✨ НОВОЕ
   logout: () => void;
-  // НОВОЕ: для чатов
   chats: Chat[];
   currentChatId: number | null;
   loadChats: () => Promise<void>;
@@ -74,9 +76,34 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
   );
   const [username, setUsername] = useState(authService.getUsername());
 
-  // НОВОЕ: состояние для чатов
+  // ✨ НОВОЕ: состояние для данных пользователя из /me
+  const [user, setUser] = useState<CurrentUserResponse | null>(null);
+  const [userLoading, setUserLoading] = useState(false);
+
   const [chats, setChats] = useState<Chat[]>([]);
   const [currentChatId, setCurrentChatId] = useState<number | null>(null);
+
+  // ✨ НОВАЯ ФУНКЦИЯ: загрузка данных пользователя из /me
+  const refreshUser = async () => {
+    if (!isAuthenticated) {
+      setUser(null);
+      setUsername(null);
+      return;
+    }
+
+    try {
+      setUserLoading(true);
+      const userData = await authService.getCurrentUser();
+      setUser(userData);
+      setUsername(userData.username);
+      console.log('✅ User data loaded from /me:', userData);
+    } catch (error) {
+      console.error('❌ Failed to load user data:', error);
+      setUsername(authService.getUsername());
+    } finally {
+      setUserLoading(false);
+    }
+  };
 
   // Проверяем аутентификацию при загрузке
   useEffect(() => {
@@ -86,6 +113,7 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
       if (!refreshToken) {
         setIsAuthenticated(false);
         setUsername(null);
+        setUser(null); // ✨
         return;
       }
 
@@ -109,6 +137,7 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
 
           setIsAuthenticated(true);
           setUsername(authService.getUsername());
+          await refreshUser(); // ✨
         } catch (error) {
           console.error("❌ Failed to refresh on load:", error);
           logout();
@@ -116,13 +145,13 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
       } else {
         setIsAuthenticated(true);
         setUsername(authService.getUsername());
+        await refreshUser(); // ✨
       }
     };
 
     checkAuth();
   }, []);
 
-  // НОВОЕ: загружаем чаты при логине
   useEffect(() => {
     if (isAuthenticated) {
       loadChats();
@@ -133,7 +162,6 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
     }
   }, [isAuthenticated]);
 
-  // Автоматическое обновление access token
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -154,7 +182,6 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
     return () => clearInterval(interval);
   }, [isAuthenticated]);
 
-  // Проверяем истечение refresh token каждый час
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -178,12 +205,12 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
     authService.logout();
     setIsAuthenticated(false);
     setUsername(null);
+    setUser(null); // ✨
     setMessages([]);
     setChats([]);
     setCurrentChatId(null);
   };
 
-  // НОВОЕ: загрузить чаты
   const loadChats = async () => {
     try {
       const fetchedChats = await chatService.getRecentChats(100);
@@ -193,25 +220,20 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
     }
   };
 
-  // НОВОЕ: создать новый чат
   const createNewChat = async () => {
     try {
-      // ✨ НЕ создаем чат в БД сразу!
-      setCurrentChatId(null); // null = временный чат
+      setCurrentChatId(null);
       setMessages([]);
-      // НЕ добавляем в chats!
     } catch (error) {
       console.error("Failed to create chat:", error);
     }
   };
 
-  // НОВОЕ: выбрать чат
   const selectChat = async (chatId: number) => {
     try {
       setLoading(true);
       const chatMessages = await chatService.getChatMessages(chatId);
 
-      // Конвертируем API сообщения в формат для UI
       const convertedMessages: Message[] = chatMessages.map(
         (msg: ApiChatMessage) => ({
           role: msg.role,
@@ -228,13 +250,11 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
     }
   };
 
-  // НОВОЕ: удалить чат
   const deleteChat = async (chatId: number) => {
     try {
       await chatService.deleteChat(chatId);
       setChats((prev) => prev.filter((chat) => chat.id !== chatId));
 
-      // Если удаляем текущий чат - очищаем
       if (currentChatId === chatId) {
         setCurrentChatId(null);
         setMessages([]);
@@ -248,13 +268,12 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
     try {
       const updatedChat = await chatService.renameChat(chatId, newTitle);
 
-      // Обновить чат в списке
       setChats((prev) =>
         prev.map((chat) => (chat.id === chatId ? updatedChat : chat))
       );
     } catch (error) {
       console.error("Failed to rename chat:", error);
-      throw error; // Пробросить ошибку для обработки в UI
+      throw error;
     }
   };
 
@@ -262,17 +281,16 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
     try {
       await chatService.deleteAllChats();
 
-      // Очистить все чаты из состояния
       setChats([]);
       setCurrentChatId(null);
       setMessages([]);
     } catch (error) {
       console.error("Failed to delete all chats:", error);
-      throw error; // Пробросить для обработки в UI
+      throw error;
     }
   };
 
-  // ✨ ОБНОВЛЕННОЕ: sendMessage с автоматическим формированием title
+  // ✨ ОРИГИНАЛЬНАЯ AI ЛОГИКА - НЕ ТРОНУТА!
   const sendMessage = async (prompt: string) => {
     try {
       setLoading(true);
@@ -280,7 +298,6 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
       let chatId = currentChatId;
 
       if (!chatId && isAuthenticated) {
-        // ✨ Это первое сообщение - создаем чат СЕЙЧАС
         console.log("📝 Первое сообщение - создаем чат в БД");
 
         const newChat = await chatService.createChat("New Chat", subject);
@@ -290,17 +307,13 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
 
         console.log(`✅ Чат создан с ID: ${chatId}`);
       }
-      // ... rest of code
 
       const userMessage: Message = { role: "user", content: prompt };
       setMessages((prev: Message[]) => [...prev, userMessage]);
       setInput("");
 
-      // Сохраняем user сообщение в БД (если залогинен)
       if (isAuthenticated && chatId) {
         await chatService.addMessage(chatId, prompt, "user", subject);
-        // ✨ НОВОЕ: После сохранения первого сообщения обновляем список чатов
-        // чтобы получить обновленный title
         await loadChats();
       }
 
@@ -333,7 +346,6 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
           });
         },
         async () => {
-          // Сохраняем assistant сообщение в БД после завершения стриминга
           if (isAuthenticated && chatId) {
             try {
               await chatService.addMessage(
@@ -342,7 +354,6 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
                 "assistant",
                 subject
               );
-              // Обновляем список чатов чтобы updated_at обновился
               await loadChats();
             } catch (error) {
               console.error("Failed to save assistant message:", error);
@@ -388,8 +399,10 @@ export const ContextProvider = ({ children }: ContextProviderProps) => {
         sendMessage,
         isAuthenticated,
         username,
+        user, // ✨ НОВОЕ
+        userLoading, // ✨ НОВОЕ
+        refreshUser, // ✨ НОВОЕ
         logout,
-        // НОВОЕ
         chats,
         currentChatId,
         loadChats,
