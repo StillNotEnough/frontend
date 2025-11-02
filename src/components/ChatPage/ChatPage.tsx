@@ -1,7 +1,7 @@
-// src/components/ChatPage/ChatPage.tsx
+// src/components/ChatPage/ChatPage.tsx - С РАЗДЕЛЕННЫМИ КОНТЕКСТАМИ
 
-import { useContext, useState } from 'react';
-import { Context } from '../../context/Context';
+import { useState } from 'react';
+import { useAuth } from '../../context/Context'; // ✅ ИЗМЕНИЛИ ИМПОРТ
 import Sidebar from '../Sidebar/Sidebar';
 import Main from '../Main/Main';
 import InputBox from '../InputBox/InputBox';
@@ -9,14 +9,9 @@ import Login from '../Auth/Login';
 import SignUp from '../Auth/SignUp';
 
 const ChatPage = () => {
-  const context = useContext(Context);
+  // ✅ Используем useAuth вместо Context
+  const { isAuthenticated } = useAuth();
   const [authModal, setAuthModal] = useState<'login' | 'signup' | null>(null);
-  
-  if (!context) {
-    throw new Error("ChatPage must be used within ContextProvider");
-  }
-
-  const { isAuthenticated } = context;
 
   return (
     <>
@@ -25,7 +20,7 @@ const ChatPage = () => {
       <Main onOpenAuthModal={setAuthModal} />
       <InputBox />
       
-      {/* Модальные окна авторизации */}
+      {/* Модальные окны авторизации */}
       {authModal === 'login' && (
         <Login onClose={() => setAuthModal(null)} />
       )}

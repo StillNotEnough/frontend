@@ -1,9 +1,9 @@
-// src/components/Main/Main.tsx - ОБНОВЛЕННАЯ ВЕРСИЯ
+// src/components/Main/Main.tsx - С РАЗДЕЛЕННЫМИ КОНТЕКСТАМИ
 
-import { useContext, useLayoutEffect, useRef, useMemo } from "react";
+import { useLayoutEffect, useRef, useMemo } from "react";
 import { assets } from "../../assets/assets";
-import { Context } from "../../context/Context";
-import Message from "../Message/Message"; // ✨ ИМПОРТ НОВОГО КОМПОНЕНТА
+import { useMessages, useUI, useAuth } from "../../context/Context";
+import Message from "../Message/Message";
 import "./Main.css";
 
 interface MainProps {
@@ -15,22 +15,12 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
   const lastSentUserMessageRef = useRef<HTMLDivElement>(null);
   const previousMessagesRef = useRef<any[]>([]);
 
-  const context = useContext(Context);
+  // ✅ Используем разделенные контексты
+  const { messages, loading } = useMessages();
+  const { sidebarExtended, setSubject } = useUI();
+  const { isAuthenticated } = useAuth();
 
-  if (!context) {
-    throw new Error("Main must be used within ContextProvider");
-  }
-
-  const {
-    input,
-    messages,
-    loading,
-    setSubject,
-    sidebarExtended,
-    isAuthenticated,
-  } = context;
-
-  // ✨ ОПТИМИЗАЦИЯ 1: useMemo для рендера сообщений
+  // ✨ ОПТИМИЗАЦИЯ: useMemo для рендера сообщений
   // Сообщения рендерятся только когда messages изменились
   const renderedMessages = useMemo(() => {
     return messages.map((msg, index) => {
@@ -118,35 +108,34 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
 
             <div className="input-box-placeholder"></div>
 
-            {!input.trim() && (
-              <div className="cards">
-                <div
-                  className="card"
-                  onClick={() => handleCardClick("general")}
-                >
-                  <img src={assets.compass_icon} alt="" />
-                  <p>General</p>
-                </div>
-                <div className="card" onClick={() => handleCardClick("math")}>
-                  <img src={assets.bulb_icon} alt="" />
-                  <p>Mathematics</p>
-                </div>
-                <div
-                  className="card"
-                  onClick={() => handleCardClick("programming")}
-                >
-                  <img src={assets.code_icon} alt="" />
-                  <p>Programming</p>
-                </div>
-                <div
-                  className="card"
-                  onClick={() => handleCardClick("english")}
-                >
-                  <img src={assets.message_icon} alt="" />
-                  <p>English</p>
-                </div>
+            {/* ✅ УБРАЛ !input.trim() - input больше нет в контексте */}
+            <div className="cards">
+              <div
+                className="card"
+                onClick={() => handleCardClick("general")}
+              >
+                <img src={assets.compass_icon} alt="" />
+                <p>General</p>
               </div>
-            )}
+              <div className="card" onClick={() => handleCardClick("math")}>
+                <img src={assets.bulb_icon} alt="" />
+                <p>Mathematics</p>
+              </div>
+              <div
+                className="card"
+                onClick={() => handleCardClick("programming")}
+              >
+                <img src={assets.code_icon} alt="" />
+                <p>Programming</p>
+              </div>
+              <div
+                className="card"
+                onClick={() => handleCardClick("english")}
+              >
+                <img src={assets.message_icon} alt="" />
+                <p>English</p>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="result">

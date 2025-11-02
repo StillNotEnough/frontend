@@ -1,0 +1,159 @@
+// src/context/AuthContext.tsx
+import { createContext, useState, useEffect, useContext } from "react";
+import authService, { type CurrentUserResponse } from "../services/authService";
+
+export interface AuthContextType {
+  isAuthenticated: boolean;
+  username: string | null;
+  user: CurrentUserResponse | null;
+  userLoading: boolean;
+  refreshUser: () => Promise<void>;
+  logout: () => void;
+}
+
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    authService.isAuthenticated()
+  );
+  const [username, setUsername] = useState(authService.getUsername());
+  const [user, setUser] = useState<CurrentUserResponse | null>(null);
+  const [userLoading, setUserLoading] = useState(false);
+
+  // ✨ НОВАЯ ФУНКЦИЯ: загрузка данных пользователя из /me
+  const refreshUser = async () => {
+    if (!isAuthenticated) {
+      setUser(null);
+      setUsername(null);
+      return;
+    }
+
+    try {
+      setUserLoading(true);
+      const userData = await authService.getCurrentUser();
+      setUser(userData);
+      setUsername(userData.username);
+      console.log('✅ User data loaded from /me:', userData);
+    } catch (error) {
+      console.error('❌ Failed to load user data:', error);
+      setUsername(authService.getUsername());
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    await authService.logoutOnBackend();
+    authService.logout();
+    setIsAuthenticated(false);
+    setUsername(null);
+    setUser(null);
+  };
+
+  // Проверяем аутентификацию при загрузке
+  useEffect(() => {
+    const checkAuth = async () => {
+      const refreshToken = authService.getRefreshToken();
+
+      if (!refreshToken) {
+        setIsAuthenticated(false);
+        setUsername(null);
+        setUser(null);
+        return;
+      }
+
+      if (authService.isRefreshTokenExpired()) {
+        console.log("🔴 Refresh token expired on load");
+        logout();
+        return;
+      }
+
+      if (
+        authService.isAccessTokenExpired() ||
+        authService.willAccessTokenExpireSoon()
+      ) {
+        console.log(
+          "🔄 Access token expired/expiring on page load, refreshing..."
+        );
+
+        try {
+          await authService.refreshTokens();
+          console.log("✅ Tokens refreshed on page load");
+
+          setIsAuthenticated(true);
+          setUsername(authService.getUsername());
+          await refreshUser();
+        } catch (error) {
+          console.error("❌ Failed to refresh on load:", error);
+          logout();
+        }
+      } else {
+        setIsAuthenticated(true);
+        setUsername(authService.getUsername());
+        await refreshUser();
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  // Автообновление токенов
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(async () => {
+      if (authService.willAccessTokenExpireSoon()) {
+        console.log("🔄 Access token expiring soon, refreshing...");
+
+        try {
+          await authService.refreshTokens();
+          console.log("✅ Tokens refreshed in background");
+        } catch (error) {
+          console.error("❌ Failed to refresh tokens:", error);
+          logout();
+        }
+      }
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
+  // Проверка истечения refresh token
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(() => {
+      if (authService.isRefreshTokenExpired()) {
+        console.log("🔴 Refresh token expired, logging out...");
+        alert("Your session has expired. Please log in again.");
+        logout();
+      }
+    }, 60 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
+  return (
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        username,
+        user,
+        userLoading,
+        refreshUser,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+  return context;
+};

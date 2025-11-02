@@ -1,10 +1,10 @@
-// src/components/SettingsModal/SettingsModal.tsx - ОБНОВЛЕННАЯ ВЕРСИЯ
+// src/components/SettingsModal/SettingsModal.tsx - С РАЗДЕЛЕННЫМИ КОНТЕКСТАМИ
 
 import type { FC } from 'react';
-import { useState, useContext } from 'react';
+import { useState } from 'react';
 import './SettingsModal.css';
 import { assets } from '../../assets/assets';
-import { Context } from '../../context/Context';
+import { useChats } from '../../context/Context'; // ✅ ИЗМЕНИЛИ ИМПОРТ
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -14,15 +14,11 @@ interface SettingsModalProps {
 }
 
 const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose, theme, onToggleTheme }) => {
-  const context = useContext(Context);
+  // ✅ Используем useChats вместо Context
+  const { deleteAllChats } = useChats();
+  
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-
-  if (!context) {
-    throw new Error("SettingsModal must be used within ContextProvider");
-  }
-
-  const { deleteAllChats } = context;
 
   if (!isOpen) return null;
 

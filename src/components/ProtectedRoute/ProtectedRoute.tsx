@@ -1,21 +1,15 @@
-// src/components/ProtectedRoute/ProtectedRoute.tsx
+// src/components/ProtectedRoute/ProtectedRoute.tsx - С РАЗДЕЛЕННЫМИ КОНТЕКСТАМИ
 
-import { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Context } from '../../context/Context';
+import { useAuth } from '../../context/Context'; // ✅ ИЗМЕНИЛИ ИМПОРТ
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const context = useContext(Context);
-
-  if (!context) {
-    throw new Error("ProtectedRoute must be used within ContextProvider");
-  }
-
-  const { isAuthenticated } = context;
+  // ✅ Используем useAuth вместо Context
+  const { isAuthenticated } = useAuth();
 
   // Если не авторизован - редирект на страницу входа
   if (!isAuthenticated) {

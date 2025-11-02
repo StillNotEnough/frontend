@@ -1,34 +1,18 @@
-// Sidebar.tsx - С DELETE CONFIRM + RENAME
+// Sidebar.tsx - С РАЗДЕЛЕННЫМИ КОНТЕКСТАМИ
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { assets } from "../../assets/assets";
 import Avatar from "../Avatar/Avatar";
-import { Context } from "../../context/Context";
+import { useAuth, useUI, useChats } from "../../context/Context";
 import SettingsModal from "../SettingsModal/SettingsModal";
 import ConfirmDialog from "../ConfirmDialog/ConfirmDialog";
 import "./Sidebar.css";
 
 const Sidebar = () => {
-  const context = useContext(Context);
-  
-  if (!context) {
-    throw new Error("Sidebar must be used within ContextProvider");
-  }
-
-  const { 
-    sidebarExtended, 
-    setSidebarExtended, 
-    username, 
-    logout,
-    theme,
-    toggleTheme,
-    chats,
-    currentChatId,
-    createNewChat,
-    selectChat,
-    deleteChat,
-    renameChat, // ✨ ДОБАВЛЕНО - если есть в Context
-  } = context;
+  // ✅ Используем разделенные контексты
+  const { username, logout } = useAuth();
+  const { sidebarExtended, setSidebarExtended, theme, toggleTheme } = useUI();
+  const { chats, currentChatId, createNewChat, selectChat, deleteChat, renameChat } = useChats();
   
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -148,13 +132,7 @@ const Sidebar = () => {
     }
 
     try {
-      // Если есть renameChat в Context - используем
-      if (typeof renameChat === 'function') {
-        await renameChat(chatId, editingTitle.trim());
-      } else {
-        // Иначе локально обновляем (временно)
-        console.log('Rename not implemented in Context, would rename to:', editingTitle);
-      }
+      await renameChat(chatId, editingTitle.trim());
     } catch (error) {
       console.error('Failed to rename chat:', error);
     } finally {

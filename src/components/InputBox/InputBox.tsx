@@ -1,42 +1,32 @@
-// InputBox.tsx - ФИНАЛЬНАЯ ВЕРСИЯ (убираем расширение/сужение)
+// InputBox.tsx - С РАЗДЕЛЕННЫМИ КОНТЕКСТАМИ
 
-import { useContext, useEffect, useRef, useState, useCallback } from "react";
-import { Context } from "../../context/Context";
+import { useEffect, useRef, useState } from "react";
+import { useMessages, useUI, useAuth, useChats } from "../../context/Context";
 import { assets } from "../../assets/assets";
 import "./InputBox.css";
 
 const InputBox = () => {
-  const context = useContext(Context);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null); // ✨ НОВЫЙ REF для контейнера
+  const containerRef = useRef<HTMLDivElement>(null);
   
+  // ✅ ЛОКАЛЬНЫЙ STATE - главная оптимизация!
   const [localInput, setLocalInput] = useState("");
   
   const prevMessagesLengthRef = useRef(0);
 
-  if (!context) {
-    throw new Error("InputBox must be used within ContextProvider");
-  }
+  // ✅ Используем разделенные контексты
+  const { messages, loading, sendMessage } = useMessages();
+  const { subject } = useUI();
+  const { sidebarExtended } = useUI();
+  const { isAuthenticated } = useAuth();
+  const { currentChatId, setCurrentChatId, loadChats } = useChats();
 
-  const { input, setInput, messages, loading, sendMessage, sidebarExtended, isAuthenticated } =
-    context;
-
-  useEffect(() => {
-    if (input === "") {
-      setLocalInput("");
-    }
-  }, [input]);
-
-  const updateContextInput = useCallback((value: string) => {
-    setInput(value);
-  }, [setInput]);
-
-  // ✨ ОБНОВЛЕНО: Отключаем transition и на overlay, и на container
+  // ✨ Отключаем transition на overlay и container
   useEffect(() => {
     const overlay = overlayRef.current;
-    const container = containerRef.current; // ✨ НОВОЕ
+    const container = containerRef.current;
     if (!overlay || !container) return;
 
     const prevLength = prevMessagesLengthRef.current;
@@ -48,17 +38,17 @@ const InputBox = () => {
     if (prevLength === 0 && currentLength === 1) {
       console.log('✨ ПЕРВОЕ СООБЩЕНИЕ - АНИМАЦИЯ ВКЛЮЧЕНА');
       overlay.style.transition = '';
-      container.style.transition = ''; // ✨ ВКЛЮЧАЕМ на контейнере тоже
+      container.style.transition = '';
     }
     // Все остальные случаи - БЕЗ анимации
     else {
       console.log('⚡ Другой переход - АНИМАЦИЯ ОТКЛЮЧЕНА');
       overlay.style.transition = 'none';
-      container.style.transition = 'none'; // ✨ ОТКЛЮЧАЕМ на контейнере тоже
+      container.style.transition = 'none';
       
       setTimeout(() => {
         overlay.style.transition = '';
-        container.style.transition = ''; // ✨ ВОЗВРАЩАЕМ на контейнере тоже
+        container.style.transition = '';
       }, 50);
     }
 
@@ -84,10 +74,22 @@ const InputBox = () => {
     }
   }, [localInput, messages.length]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!localInput.trim() || loading) return;
-    sendMessage(localInput);
-    setLocalInput("");
+    
+    const prompt = localInput;
+    setLocalInput(""); // Очищаем сразу
+    
+    // ✅ Вызываем sendMessage с всеми параметрами
+    await sendMessage(
+      prompt,
+      subject,
+      isAuthenticated,
+      currentChatId,
+      setCurrentChatId,
+      () => {}, // setChats (пустая функция, т.к. она в ChatsContext)
+      loadChats
+    );
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -103,7 +105,7 @@ const InputBox = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setLocalInput(value);
-    updateContextInput(value);
+    // ✅ НЕ обновляем Context - input теперь только локальный!
   };
 
   const overlayClasses = [
@@ -118,7 +120,7 @@ const InputBox = () => {
 
   return (
     <div className={overlayClasses} ref={overlayRef}>
-      <div className="input-container" ref={containerRef}> {/* ✨ ДОБАВИЛИ REF */}
+      <div className="input-container" ref={containerRef}>
         <div className="search-box" ref={searchBoxRef}>
           <textarea
             ref={textareaRef}
