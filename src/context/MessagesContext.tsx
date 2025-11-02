@@ -69,11 +69,13 @@ export const MessagesProvider = ({ children }: { children: React.ReactNode }) =>
 
       let assistantContent = "";
 
+      const recentMessages = messages.slice(-20); // последние 20 сообщений помнит ии
+
       await sendChatMessageStream(
         {
           message: prompt,
           subject: subject,
-          conversationHistory: messages,
+          conversationHistory: recentMessages,
           stream: true,
         },
         (chunk: string) => {

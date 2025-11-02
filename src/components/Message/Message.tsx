@@ -1,4 +1,4 @@
-// src/components/Message/Message.tsx - СОЗДАЙ НОВЫЙ КОМПОНЕНТ
+// src/components/Message/Message.tsx - ОПТИМИЗИРОВАННАЯ ВЕРСИЯ
 
 import { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -12,7 +12,7 @@ interface MessageProps {
   content: string;
 }
 
-// ✨ React.memo предотвращает перерендер если props не изменились
+// ✨ React.memo с кастомной функцией сравнения
 const Message = memo(({ role, content }: MessageProps) => {
   return (
     <div className="message-content">
@@ -29,6 +29,13 @@ const Message = memo(({ role, content }: MessageProps) => {
         <p>{content}</p>
       )}
     </div>
+  );
+}, (prevProps, nextProps) => {
+  // Возвращаем true если props НЕ изменились (пропускаем ререндер)
+  // Возвращаем false если props изменились (делаем ререндер)
+  return (
+    prevProps.role === nextProps.role &&
+    prevProps.content === nextProps.content
   );
 });
 

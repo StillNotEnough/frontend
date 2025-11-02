@@ -1,6 +1,6 @@
-// InputBox.tsx - С РАЗДЕЛЕННЫМИ КОНТЕКСТАМИ
+// InputBox.tsx - С useCallback ОПТИМИЗАЦИЕЙ
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useMessages, useUI, useAuth, useChats } from "../../context/Context";
 import { assets } from "../../assets/assets";
 import "./InputBox.css";
@@ -18,8 +18,7 @@ const InputBox = () => {
 
   // ✅ Используем разделенные контексты
   const { messages, loading, sendMessage } = useMessages();
-  const { subject } = useUI();
-  const { sidebarExtended } = useUI();
+  const { subject, sidebarExtended } = useUI(); // ✅ Объединил в один вызов
   const { isAuthenticated } = useAuth();
   const { currentChatId, setCurrentChatId, loadChats } = useChats();
 
@@ -74,7 +73,8 @@ const InputBox = () => {
     }
   }, [localInput, messages.length]);
 
-  const handleSend = async () => {
+  // ✨ useCallback - функция не пересоздается при каждом рендере
+  const handleSend = useCallback(async () => {
     if (!localInput.trim() || loading) return;
     
     const prompt = localInput;
@@ -90,9 +90,10 @@ const InputBox = () => {
       () => {}, // setChats (пустая функция, т.к. она в ChatsContext)
       loadChats
     );
-  };
+  }, [localInput, loading, sendMessage, subject, isAuthenticated, currentChatId, setCurrentChatId, loadChats]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  // ✨ useCallback для handleKeyDown
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !loading) {
       if (e.shiftKey) {
         return;
@@ -100,7 +101,7 @@ const InputBox = () => {
       e.preventDefault();
       handleSend();
     }
-  };
+  }, [loading, handleSend]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
