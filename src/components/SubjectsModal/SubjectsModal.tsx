@@ -1,6 +1,8 @@
 // src/components/SubjectsModal/SubjectsModal.tsx
+// ИСПРАВЛЕНО: Добавлен React Portal для рендеринга вне иерархии Main
 
 import { type FC } from 'react';
+import { createPortal } from 'react-dom';
 import './SubjectsModal.css';
 import { assets } from '../../assets/assets';
 import { useUI } from '../../context/Context';
@@ -52,7 +54,8 @@ const SubjectsModal: FC<SubjectsModalProps> = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  return (
+  // 🎯 КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: Используем createPortal для рендеринга в document.body
+  return createPortal(
     <>
       {/* Overlay */}
       <div className="subjects-overlay" onClick={onClose}></div>
@@ -102,7 +105,8 @@ const SubjectsModal: FC<SubjectsModalProps> = ({ isOpen, onClose }) => {
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body // 🎯 Рендерим модалку напрямую в body, минуя иерархию Main
   );
 };
 

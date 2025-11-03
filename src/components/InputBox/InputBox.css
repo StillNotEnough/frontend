@@ -1,7 +1,7 @@
 /* Overlay контейнер - всегда используется одинаковый input */
 .input-box-overlay {
   position: fixed;
-  z-index: 50;
+  z-index: 10; /* ИСПРАВЛЕНО: уменьшен z-index с 50 до 10 */
   pointer-events: none;
   transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
               bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
