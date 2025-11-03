@@ -611,3 +611,44 @@ body.dark-theme .login-btn:hover {
     font-size: 14px;
   }
 }
+
+/* === Subjects Button в Nav === */
+.subjects-nav-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #ff930f 0%, #ff7a00 100%);
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(255, 147, 15, 0.3);
+}
+
+.subjects-nav-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255, 147, 15, 0.4);
+}
+
+.subjects-nav-button:active {
+  transform: translateY(0);
+}
+
+.subjects-nav-button img {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) invert(1);
+}
+
+.subjects-nav-button span {
+  font-weight: 600;
+}
+
+/* Dark theme */
+body.dark-theme .subjects-nav-button {
+  box-shadow: 0 2px 8px rgba(255, 147, 15, 0.2);
+}

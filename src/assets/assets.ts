@@ -16,6 +16,11 @@ import logout_icon from './logout_icon.png'
 import dots_icon from './dots_icon.png'
 import delete_icon from './delete_icon.png'
 import rename_icon from './rename_icon.png'
+import subject_icon from './subject_icon.png'
+import general_icon from './general_icon.png'
+import english_icon from './english_icon.png'
+import math_icon from './math_icon.png'
+
 
 import moon_icon from './moon_icon.svg'
 import sun_icon from './sun_icon.svg'
@@ -40,5 +45,9 @@ export const assets = {
     logout_icon,
     dots_icon,
     delete_icon,
-    rename_icon
+    rename_icon,
+    subject_icon,
+    general_icon,
+    english_icon,
+    math_icon
 }

@@ -1,9 +1,10 @@
-// src/components/Main/Main.tsx - С РАЗДЕЛЕННЫМИ КОНТЕКСТАМИ
+// src/components/Main/Main.tsx - С КНОПКОЙ SUBJECTS
 
-import { useLayoutEffect, useRef, useMemo } from "react";
+import { useLayoutEffect, useRef, useMemo, useState } from "react";
 import { assets } from "../../assets/assets";
 import { useMessages, useUI, useAuth } from "../../context/Context";
 import Message from "../Message/Message";
+import SubjectsModal from "../SubjectsModal/SubjectsModal";
 import "./Main.css";
 
 interface MainProps {
@@ -14,14 +15,16 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
   const mainRef = useRef<HTMLDivElement>(null);
   const lastSentUserMessageRef = useRef<HTMLDivElement>(null);
   const previousMessagesRef = useRef<any[]>([]);
+  
+  // 🎯 State для модалки предметов
+  const [isSubjectsModalOpen, setIsSubjectsModalOpen] = useState(false);
 
   // ✅ Используем разделенные контексты
   const { messages, loading } = useMessages();
-  const { sidebarExtended, setSubject } = useUI();
+  const { sidebarExtended, setSubject, subject } = useUI();
   const { isAuthenticated } = useAuth();
 
   // ✨ ОПТИМИЗАЦИЯ: useMemo для рендера сообщений
-  // Сообщения рендерятся только когда messages изменились
   const renderedMessages = useMemo(() => {
     return messages.map((msg, index) => {
       const isLastUserMessage =
@@ -39,7 +42,7 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
         </div>
       );
     });
-  }, [messages]); // ✨ Только когда messages изменились!
+  }, [messages]);
 
   // useLayoutEffect для автоскролла
   useLayoutEffect(() => {
@@ -70,10 +73,28 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
     setSubject(selectedSubject.toLowerCase());
   };
 
+  // 🎯 Получаем название текущего предмета
+  const getSubjectDisplayName = () => {
+    const subjectNames: Record<string, string> = {
+      general: 'General',
+      math: 'Mathematics',
+      programming: 'Programming',
+      english: 'English',
+    };
+    return subjectNames[subject] || 'General';
+  };
+
   return (
     <div className="main" ref={mainRef}>
       <div className="nav">
-        <p>NoNameAI</p>
+        {/* 🎯 НОВАЯ КНОПКА SUBJECTS */}
+        <button 
+          className="subjects-nav-button"
+          onClick={() => setIsSubjectsModalOpen(true)}
+        >
+          <img src={assets.subject_icon} alt="Subjects" />
+          <span>{getSubjectDisplayName()}</span>
+        </button>
 
         {!isAuthenticated && (
           <div className="auth-buttons">
@@ -108,7 +129,6 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
 
             <div className="input-box-placeholder"></div>
 
-            {/* ✅ УБРАЛ !input.trim() - input больше нет в контексте */}
             <div className="cards">
               <div
                 className="card"
@@ -139,7 +159,6 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
           </div>
         ) : (
           <div className="result">
-            {/* ✨ ИСПОЛЬЗУЕМ МЕМОИЗИРОВАННЫЕ СООБЩЕНИЯ */}
             {renderedMessages}
 
             {loading && (
@@ -156,6 +175,12 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
           </div>
         )}
       </div>
+
+      {/* 🎯 МОДАЛКА SUBJECTS */}
+      <SubjectsModal 
+        isOpen={isSubjectsModalOpen}
+        onClose={() => setIsSubjectsModalOpen(false)}
+      />
     </div>
   );
 };
