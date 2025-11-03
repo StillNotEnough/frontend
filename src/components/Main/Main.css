@@ -612,32 +612,41 @@ body.dark-theme .login-btn:hover {
   }
 }
 
-/* === Subjects Button в Nav === */
+/* === Subjects Button Wrapper (ДОБАВЬ В КОНЕЦ Main.css) === */
+
+.subjects-button-wrapper {
+  position: relative;
+}
+
+/* Обновленная прозрачная кнопка subjects с иконкой dropdown */
 .subjects-nav-button {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 20px;
-  background: linear-gradient(135deg, #ff930f 0%, #ff7a00 100%);
+  background: transparent;
   border: none;
   border-radius: 12px;
   font-size: 16px;
   font-weight: 600;
-  color: white;
+  color: #585858;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(255, 147, 15, 0.3);
+  box-shadow: none;
+  outline: none;
 }
 
 .subjects-nav-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(255, 147, 15, 0.4);
+  box-shadow: none;
 }
 
 .subjects-nav-button:active {
   transform: translateY(0);
 }
 
+/* Для иконок внутри кнопки */
 .subjects-nav-button img {
   width: 20px;
   height: 20px;
@@ -648,7 +657,17 @@ body.dark-theme .login-btn:hover {
   font-weight: 600;
 }
 
+.subjects-nav-button svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+}
+
 /* Dark theme */
 body.dark-theme .subjects-nav-button {
-  box-shadow: 0 2px 8px rgba(255, 147, 15, 0.2);
+  color: #b0b0b0;
+}
+
+body.dark-theme .subjects-nav-button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }

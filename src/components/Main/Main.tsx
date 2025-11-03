@@ -1,4 +1,4 @@
-// src/components/Main/Main.tsx - С КНОПКОЙ SUBJECTS
+// src/components/Main/Main.tsx - С КНОПКОЙ SUBJECTS И DROPDOWN
 
 import { useLayoutEffect, useRef, useMemo, useState } from "react";
 import { assets } from "../../assets/assets";
@@ -16,8 +16,9 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
   const lastSentUserMessageRef = useRef<HTMLDivElement>(null);
   const previousMessagesRef = useRef<any[]>([]);
   
-  // 🎯 State для модалки предметов
-  const [isSubjectsModalOpen, setIsSubjectsModalOpen] = useState(false);
+  // 🎯 Refs для dropdown
+  const subjectsButtonRef = useRef<HTMLButtonElement>(null);
+  const [isSubjectsDropdownOpen, setIsSubjectsDropdownOpen] = useState(false);
 
   // ✅ Используем разделенные контексты
   const { messages, loading } = useMessages();
@@ -84,17 +85,43 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
     return subjectNames[subject] || 'General';
   };
 
+  // 🎯 Toggle dropdown
+  const toggleSubjectsDropdown = () => {
+    setIsSubjectsDropdownOpen(!isSubjectsDropdownOpen);
+  };
+
   return (
     <div className="main" ref={mainRef}>
       <div className="nav">
-        {/* 🎯 НОВАЯ КНОПКА SUBJECTS */}
-        <button 
-          className="subjects-nav-button"
-          onClick={() => setIsSubjectsModalOpen(true)}
-        >
-          <img src={assets.subject_icon} alt="Subjects" />
-          <span>{getSubjectDisplayName()}</span>
-        </button>
+        {/* 🎯 КНОПКА SUBJECTS С DROPDOWN */}
+        <div className="subjects-button-wrapper">
+          <button 
+            ref={subjectsButtonRef}
+            className="subjects-nav-button"
+            onClick={toggleSubjectsDropdown}
+          >
+            <span>{getSubjectDisplayName()}</span>
+            <svg 
+              width="16" 
+              height="16" 
+              viewBox="0 0 16 16" 
+              fill="none"
+              style={{ 
+                transform: isSubjectsDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s ease'
+              }}
+            >
+              <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+
+          {/* DROPDOWN */}
+          <SubjectsModal 
+            isOpen={isSubjectsDropdownOpen}
+            onClose={() => setIsSubjectsDropdownOpen(false)}
+            buttonRef={subjectsButtonRef}
+          />
+        </div>
 
         {!isAuthenticated && (
           <div className="auth-buttons">
@@ -175,12 +202,6 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
           </div>
         )}
       </div>
-
-      {/* 🎯 МОДАЛКА SUBJECTS */}
-      <SubjectsModal 
-        isOpen={isSubjectsModalOpen}
-        onClose={() => setIsSubjectsModalOpen(false)}
-      />
     </div>
   );
 };
