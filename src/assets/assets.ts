@@ -21,6 +21,7 @@ import general_icon from './general_icon.png'
 import english_icon from './english_icon.png'
 import math_icon from './math_icon.png'
 import copy_icon from './copy_icon.png'
+import check_icon from './check_icon.png'
 
 
 import moon_icon from './moon_icon.svg'
@@ -51,5 +52,6 @@ export const assets = {
     general_icon,
     english_icon,
     math_icon,
-    copy_icon
+    copy_icon,
+    check_icon
 }

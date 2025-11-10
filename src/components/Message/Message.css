@@ -1,0 +1,55 @@
+/* Контейнер с текстом сообщения */
+.message-content {
+    position: relative;
+}
+
+/* Кнопка копирования */
+.copy-button {
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.7;
+}
+
+/* Ховер эффект для кнопки */
+.copy-button:hover {
+    opacity: 1;
+}
+
+/* Активное состояние (при клике) */
+.copy-button:active {
+    opacity: 0.5;
+}
+
+/* Иконка в кнопке */
+.copy-button img {
+    width: 16px;
+    height: 16px;
+    opacity: 0.8;
+}
+
+.copy-button:hover img {
+    opacity: 1;
+}
+
+/* Состояние "Скопировано" */
+.copy-button.copied {
+    color: #4caf50;
+}
+
+/* Для светлой темы */
+[data-theme="light"] .copy-button {
+    color: var(--text-color);
+}
+
+[data-theme="light"] .copy-button.copied {
+    color: #2e7d32;
+}

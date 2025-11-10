@@ -6,9 +6,12 @@ import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
+import './Message.css'
 
 // @ts-ignore
 import copyIcon from '../../assets/copy_icon.png';
+// @ts-ignore
+import checkIcon from '../../assets/check_icon.png';
 
 interface MessageProps {
   role: 'user' | 'assistant';
@@ -17,7 +20,6 @@ interface MessageProps {
 
 const Message = memo(({ role, content }: MessageProps) => {
   const [copied, setCopied] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   const handleCopy = async () => {
     try {
@@ -29,15 +31,8 @@ const Message = memo(({ role, content }: MessageProps) => {
     }
   };
 
-  // Определяем когда показывать кнопку
-  const showCopyButton = role === 'assistant' || isHovered;
-
   return (
-    <div 
-      className={`message-wrapper ${role}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className={`message-wrapper ${role}`}>
       <div className="message-content">
         {role === 'assistant' ? (
           <div className="message-text">
@@ -53,15 +48,15 @@ const Message = memo(({ role, content }: MessageProps) => {
         )}
       </div>
 
-      {/* 🔥 КНОПКА КОПИРОВАНИЯ */}
-      {showCopyButton && (
+      {/* 🔥 КНОПКА КОПИРОВАНИЯ - только для AI */}
+      {role === 'assistant' && (
         <button
           className="copy-button"
           onClick={handleCopy}
           title={copied ? 'Скопировано!' : 'Копировать'}
         >
           {copied ? (
-            <span className="copy-success">✓</span>
+            <img src={checkIcon} alt="Copied" />
           ) : (
             <img src={copyIcon} alt="Copy" />
           )}
