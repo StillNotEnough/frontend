@@ -1,37 +1,33 @@
-// src/context/ChatsContext.tsx
-import { createContext, useState, useEffect, useContext } from "react";
+import { useCallback, useEffect, useState } from "react";
 import chatService, {
   type Chat,
   type ChatMessage as ApiChatMessage,
 } from "../services/chatService";
+import { ChatsContext } from "./chatsContext";
+import type { Message } from "./messagesContext";
 
-export interface ChatsContextType {
-  chats: Chat[];
-  currentChatId: number | null;
-  setCurrentChatId: (id: number | null) => void;
-  loadChats: () => Promise<void>;
-  createNewChat: () => Promise<void>;
-  selectChat: (chatId: number) => Promise<void>;
-  deleteChat: (chatId: number) => Promise<void>;
-  renameChat: (chatId: number, newTitle: string) => Promise<void>;
-  deleteAllChats: () => Promise<void>;
-}
-
-export const ChatsContext = createContext<ChatsContextType | undefined>(undefined);
-
-export const ChatsProvider = ({ 
+export const ChatsProvider = ({
   children,
   isAuthenticated,
   setMessages,
-  setLoading
-}: { 
+  setLoading,
+}: {
   children: React.ReactNode;
   isAuthenticated: boolean;
-  setMessages: (messages: any[] | ((prev: any[]) => any[])) => void;
+  setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void;
   setLoading: (loading: boolean) => void;
 }) => {
   const [chats, setChats] = useState<Chat[]>([]);
   const [currentChatId, setCurrentChatId] = useState<number | null>(null);
+
+  const loadChats = useCallback(async () => {
+    try {
+      const fetchedChats = await chatService.getRecentChats(100);
+      setChats(fetchedChats);
+    } catch (error) {
+      console.error("Failed to load chats:", error);
+    }
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -41,16 +37,7 @@ export const ChatsProvider = ({
       setCurrentChatId(null);
       setMessages([]);
     }
-  }, [isAuthenticated]);
-
-  const loadChats = async () => {
-    try {
-      const fetchedChats = await chatService.getRecentChats(100);
-      setChats(fetchedChats);
-    } catch (error) {
-      console.error("Failed to load chats:", error);
-    }
-  };
+  }, [isAuthenticated, loadChats, setMessages]);
 
   const createNewChat = async () => {
     try {
@@ -66,7 +53,7 @@ export const ChatsProvider = ({
       setLoading(true);
       const chatMessages = await chatService.getChatMessages(chatId);
 
-      const convertedMessages: any[] = chatMessages.map(
+      const convertedMessages: Message[] = chatMessages.map(
         (msg: ApiChatMessage) => ({
           role: msg.role,
           content: msg.content,
@@ -139,12 +126,4 @@ export const ChatsProvider = ({
       {children}
     </ChatsContext.Provider>
   );
-};
-
-export const useChats = () => {
-  const context = useContext(ChatsContext);
-  if (!context) {
-    throw new Error("useChats must be used within ChatsProvider");
-  }
-  return context;
 };

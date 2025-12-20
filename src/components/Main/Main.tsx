@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, useMemo, useState } from "react";
 import { assets } from "../../assets/assets";
 import { useMessages, useUI, useAuth } from "../../context/Context";
+import type { Message } from "../../context/messagesContext";
 import Message from "../Message/Message";
 import SubjectsModal from "../SubjectsModal/SubjectsModal";
 import "./Main.css";
@@ -14,7 +15,7 @@ interface MainProps {
 const Main = ({ onOpenAuthModal }: MainProps) => {
   const mainRef = useRef<HTMLDivElement>(null);
   const lastSentUserMessageRef = useRef<HTMLDivElement>(null);
-  const previousMessagesRef = useRef<any[]>([]);
+  const previousMessagesRef = useRef<Message[]>([]);
   
   // 🎯 Refs для dropdown
   const subjectsButtonRef = useRef<HTMLButtonElement>(null);

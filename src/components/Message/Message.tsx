@@ -7,10 +7,7 @@ import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import './Message.css'
-
-// @ts-ignore
 import copyIcon from '../../assets/copy_icon.png';
-// @ts-ignore
 import checkIcon from '../../assets/check_icon.png';
 
 interface MessageProps {
