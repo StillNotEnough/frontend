@@ -12,7 +12,7 @@ permissions:
   packages: write
 
 jobs:
-  frontend_test:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -38,7 +38,7 @@ jobs:
         run: npm run build
 
   frontend_publish_image:
-    needs: frontend_test
+    needs: test
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
