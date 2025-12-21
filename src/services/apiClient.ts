@@ -1,6 +1,15 @@
-// src/services/apiClient.ts - СОЗДАЙ ЭТОТ ФАЙЛ
+// src/services/apiClient.ts
 
-import authService from './authService';
+import authService from "./authService";
+import { API_BASE_URL } from "./apiConfig";
+
+const buildUrl = (path: string) => {
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+
+  return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+};
 
 /**
  * Обертка над fetch с автоматическим добавлением токена
@@ -10,58 +19,56 @@ export async function fetchWithAuth(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  
   // Получаем валидный access token (обновит если нужно)
   const token = await authService.getValidAccessToken();
 
   if (!token) {
-    throw new Error('Not authenticated');
+    throw new Error("Not authenticated");
   }
 
   // Добавляем токен в headers
   const headers = {
     ...options.headers,
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
   };
 
   // Выполняем запрос
-  const response = await fetch(url, {
+  const response = await fetch(buildUrl(url), {
     ...options,
     headers,
   });
 
   // Если 401 - пробуем обновить токен и повторить запрос
   if (response.status === 401) {
-    console.log('🔄 Got 401, attempting to refresh token...');
-    
+    console.log("🔄 Got 401, attempting to refresh token...");
+
     try {
       // Пробуем обновить токены
       await authService.refreshTokens();
       const newToken = authService.getAccessToken();
 
       if (!newToken) {
-        throw new Error('Failed to refresh token');
+        throw new Error("Failed to refresh token");
       }
 
       // Повторяем запрос с новым токеном
       const retryHeaders = {
         ...options.headers,
-        'Authorization': `Bearer ${newToken}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${newToken}`,
+        "Content-Type": "application/json",
       };
 
-      const retryResponse = await fetch(url, {
+      const retryResponse = await fetch(buildUrl(url), {
         ...options,
         headers: retryHeaders,
       });
 
       return retryResponse;
-
     } catch (error) {
-      console.error('❌ Failed to refresh token, logging out');
+      console.error("❌ Failed to refresh token, logging out");
       authService.logout();
-      window.location.href = '/login';
+      window.location.href = "/login";
       throw error;
     }
   }
@@ -74,40 +81,24 @@ export async function fetchWithAuth(
  */
 export const apiClient = {
   get: async (url: string) => {
-    return fetchWithAuth(url, { method: 'GET' });
+    return fetchWithAuth(url, { method: "GET" });
   },
 
   post: async (url: string, data: unknown) => {
     return fetchWithAuth(url, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(data),
     });
   },
 
   put: async (url: string, data: unknown) => {
     return fetchWithAuth(url, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(data),
     });
   },
 
   delete: async (url: string) => {
-    return fetchWithAuth(url, { method: 'DELETE' });
+    return fetchWithAuth(url, { method: "DELETE" });
   },
 };
-
-/**
- * Пример использования:
- * 
- * import { apiClient } from './services/apiClient';
- * 
- * // GET запрос
- * const response = await apiClient.get('http://localhost:8080/chats');
- * const chats = await response.json();
- * 
- * // POST запрос
- * const response = await apiClient.post('http://localhost:8080/chats', {
- *   title: 'New chat',
- *   subject: 'math'
- * });
- */

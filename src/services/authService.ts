@@ -1,7 +1,6 @@
 import { API_BASE_URL } from "./apiConfig";
 
 const AUTH_API_URL = `${API_BASE_URL}/api/v1/auth`;
-const USERS_API_URL = `${API_BASE_URL}/api/v1/users`;
 
 export interface LoginRequest {
   username: string;
@@ -123,91 +122,6 @@ class AuthService {
   }
 
   // ========================================
-  // USER INFO METHODS
-  // ========================================
-
-  /**
-   * Получить информацию о текущем пользователе из /me
-   * Возвращает актуальные данные из БД, НЕ парсит JWT!
-   */
-  async getCurrentUser(): Promise<CurrentUserResponse> {
-    const accessToken = await this.getValidAccessToken();
-
-    if (!accessToken) {
-      throw new Error("No valid access token available");
-    }
-
-    try {
-      const response = await fetch(`${USERS_API_URL}/me`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          this.logout();
-          throw new Error("Unauthorized. Please login again.");
-        }
-        throw new Error("Failed to fetch user info");
-      }
-
-      const userData: CurrentUserResponse = await response.json();
-
-      // Сохраняем username локально для быстрого доступа в UI
-      this.saveUsername(userData.username);
-
-      console.log("✅ User info fetched from /me endpoint");
-      return userData;
-    } catch (error) {
-      console.error("Get current user error:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Обновить информацию текущего пользователя
-   */
-  async updateCurrentUser(updates: {
-    email?: string;
-    profilePictureUrl?: string;
-  }): Promise<CurrentUserResponse> {
-    const accessToken = await this.getValidAccessToken();
-
-    if (!accessToken) {
-      throw new Error("No valid access token available");
-    }
-
-    try {
-      const response = await fetch(`${USERS_API_URL}/me`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updates),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          this.logout();
-          throw new Error("Unauthorized. Please login again.");
-        }
-        throw new Error("Failed to update user info");
-      }
-
-      const userData: CurrentUserResponse = await response.json();
-      console.log("✅ User info updated");
-      return userData;
-    } catch (error) {
-      console.error("Update current user error:", error);
-      throw error;
-    }
-  }
-
-  // ========================================
   // 🔄 TOKEN MANAGEMENT
   // ========================================
 
@@ -321,7 +235,7 @@ class AuthService {
   /**
    * Получить username из localStorage
    * ВНИМАНИЕ: Это для быстрого доступа в UI
-   * Для получения полных данных используйте getCurrentUser()
+   * Для получения полных данных используйте userService.getCurrentUser()
    */
   getUsername(): string | null {
     return localStorage.getItem("username");

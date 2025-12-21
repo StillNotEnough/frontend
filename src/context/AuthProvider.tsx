@@ -1,5 +1,6 @@
 import authService, { type CurrentUserResponse } from "../services/authService";
 import { useCallback, useEffect, useState } from "react";
+import userService from "../services/userService";
 
 import { AuthContext } from "./authContext";
 
@@ -20,7 +21,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     try {
       setUserLoading(true);
-      const userData = await authService.getCurrentUser();
+      const userData = await userService.getCurrentUser();
       setUser(userData);
       setUsername(userData.username);
       console.log("✅ User data loaded from /me:", userData);

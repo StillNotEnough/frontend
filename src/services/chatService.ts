@@ -1,6 +1,6 @@
 // src/services/chatService.ts
 
-import authService from "./authService";
+import { apiClient } from "./apiClient";
 import { API_BASE_URL } from "./apiConfig";
 
 const CHAT_API_URL = `${API_BASE_URL}/api/v1`;
@@ -24,21 +24,10 @@ export interface ChatMessage {
 }
 
 class ChatService {
-  private async getHeaders(): Promise<HeadersInit> {
-    const token = authService.getAccessToken();
-    return {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    };
-  }
-
   // Получить последние чаты
   async getRecentChats(limit: number = 20): Promise<Chat[]> {
-    const response = await fetch(
-      `${CHAT_API_URL}/chats/recent?limit=${limit}`,
-      {
-        headers: await this.getHeaders(),
-      }
+    const response = await apiClient.get(
+      `${CHAT_API_URL}/chats/recent?limit=${limit}`
     );
 
     if (!response.ok) {
@@ -50,10 +39,9 @@ class ChatService {
 
   // Создать новый чат
   async createChat(title: string, subject?: string): Promise<Chat> {
-    const response = await fetch(`${CHAT_API_URL}/chats`, {
-      method: "POST",
-      headers: await this.getHeaders(),
-      body: JSON.stringify({ title, subject }),
+    const response = await apiClient.post(`${CHAT_API_URL}/chats`, {
+      title,
+      subject,
     });
 
     if (!response.ok) {
@@ -65,9 +53,9 @@ class ChatService {
 
   // Получить сообщения чата
   async getChatMessages(chatId: number): Promise<ChatMessage[]> {
-    const response = await fetch(`${CHAT_API_URL}/chats/${chatId}/messages`, {
-      headers: await this.getHeaders(),
-    });
+    const response = await apiClient.get(
+      `${CHAT_API_URL}/chats/${chatId}/messages`
+    );
 
     if (!response.ok) {
       throw new Error("Failed to fetch messages");
@@ -83,11 +71,14 @@ class ChatService {
     role: "user" | "assistant",
     templateUsed?: string
   ): Promise<ChatMessage> {
-    const response = await fetch(`${CHAT_API_URL}/chats/${chatId}/messages`, {
-      method: "POST",
-      headers: await this.getHeaders(),
-      body: JSON.stringify({ content, role, templateUsed }),
-    });
+    const response = await apiClient.post(
+      `${CHAT_API_URL}/chats/${chatId}/messages`,
+      {
+        content,
+        role,
+        templateUsed,
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Failed to add message");
@@ -98,10 +89,7 @@ class ChatService {
 
   // Удалить чат
   async deleteChat(chatId: number): Promise<void> {
-    const response = await fetch(`${CHAT_API_URL}/chats/${chatId}`, {
-      method: "DELETE",
-      headers: await this.getHeaders(),
-    });
+    const response = await apiClient.delete(`${CHAT_API_URL}/chats/${chatId}`);
 
     if (!response.ok) {
       throw new Error("Failed to delete chat");
@@ -109,20 +97,17 @@ class ChatService {
   }
 
   async renameChat(chatId: number, newTitle: string): Promise<Chat> {
-    const response = await fetch(`${CHAT_API_URL}/chats/${chatId}/title`, {
-      method: "PUT",
-      headers: await this.getHeaders(),
-      body: JSON.stringify({ newTitle }),
-    });
+    const response = await apiClient.put(
+      `${CHAT_API_URL}/chats/${chatId}/title`,
+      { newTitle }
+    );
     if (!response.ok) throw new Error("Failed to rename chat");
     return response.json();
   }
 
   async deleteAllChats(): Promise<void> {
-    const response = await fetch(`${CHAT_API_URL}/chats/all`, {
-      method: "DELETE",
-      headers: await this.getHeaders(),
-    });
+    const response = await apiClient.delete(`${CHAT_API_URL}/chats/all`);
+
     if (!response.ok) throw new Error("Failed to delete all chats");
   }
 }
