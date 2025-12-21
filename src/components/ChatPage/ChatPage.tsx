@@ -1,32 +1,27 @@
 // src/components/ChatPage/ChatPage.tsx - С РАЗДЕЛЕННЫМИ КОНТЕКСТАМИ
 
-import { useState } from 'react';
-import { useAuth } from '../../context/Context'; // ✅ ИЗМЕНИЛИ ИМПОРТ
-import Sidebar from '../Sidebar/Sidebar';
-import Main from '../Main/Main';
-import InputBox from '../InputBox/InputBox';
-import Login from '../Auth/Login';
-import SignUp from '../Auth/SignUp';
+import { useAuth } from "../../context/Context";
+import Sidebar from "../Sidebar/Sidebar";
+import Main from "../Main/Main";
+import InputBox from "../InputBox/InputBox";
+import Login from "../Auth/Login";
+import SignUp from "../Auth/SignUp";
 
 const ChatPage = () => {
-  // ✅ Используем useAuth вместо Context
-  const { isAuthenticated } = useAuth();
-  const [authModal, setAuthModal] = useState<'login' | 'signup' | null>(null);
+  // Используем useAuth вместо Context
+  const { isAuthenticated, authModal, openAuthModal, closeAuthModal } =
+    useAuth();
 
   return (
     <>
       {/* Показываем Sidebar только если залогинен */}
       {isAuthenticated && <Sidebar />}
-      <Main onOpenAuthModal={setAuthModal} />
+      <Main onOpenAuthModal={openAuthModal} />
       <InputBox />
-      
+
       {/* Модальные окны авторизации */}
-      {authModal === 'login' && (
-        <Login onClose={() => setAuthModal(null)} />
-      )}
-      {authModal === 'signup' && (
-        <SignUp onClose={() => setAuthModal(null)} />
-      )}
+      {authModal === "login" && <Login onClose={closeAuthModal} />}
+      {authModal === "signup" && <SignUp onClose={closeAuthModal} />}
     </>
   );
 };

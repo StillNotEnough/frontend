@@ -6,11 +6,18 @@ export interface AuthContextType {
   username: string | null;
   user: CurrentUserResponse | null;
   userLoading: boolean;
+  authModal: AuthModalType | null;
+  openAuthModal: (modal: AuthModalType) => void;
+  closeAuthModal: () => void;
   refreshUser: () => Promise<void>;
   logout: () => void;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export type AuthModalType = "login" | "signup";
+
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

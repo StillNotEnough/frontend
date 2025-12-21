@@ -2,7 +2,9 @@ import authService, { type CurrentUserResponse } from "../services/authService";
 import { useCallback, useEffect, useState } from "react";
 import userService from "../services/userService";
 
-import { AuthContext } from "./authContext";
+import { AuthContext, type AuthModalType } from "./authContext";
+import { setAuthModalListener } from "../services/authModalController";
+import { setLogoutHandler } from "../services/authSessionController";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -11,6 +13,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [username, setUsername] = useState(authService.getUsername());
   const [user, setUser] = useState<CurrentUserResponse | null>(null);
   const [userLoading, setUserLoading] = useState(false);
+  const [authModal, setAuthModal] = useState<AuthModalType | null>(null);
+
+  const openAuthModal = useCallback((modal: AuthModalType) => {
+    setAuthModal(modal);
+  }, []);
+
+  const closeAuthModal = useCallback(() => {
+    setAuthModal(null);
+  }, []);
 
   const refreshUser = useCallback(async () => {
     if (!isAuthenticated) {
@@ -33,7 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [isAuthenticated]);
 
-  const logout = useCallback( async () => {
+  const logout = useCallback(async () => {
     await authService.logoutOnBackend();
     authService.logout();
     setIsAuthenticated(false);
@@ -124,6 +135,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => clearInterval(interval);
   }, [isAuthenticated, logout]);
 
+  useEffect(() => {
+    setAuthModalListener(openAuthModal);
+    return () => setAuthModalListener(null);
+  }, [openAuthModal]);
+
+  useEffect(() => {
+    setLogoutHandler(logout);
+    return () => setLogoutHandler(null);
+  }, [logout]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -131,6 +152,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         username,
         user,
         userLoading,
+        authModal,
+        openAuthModal,
+        closeAuthModal,
         refreshUser,
         logout,
       }}
