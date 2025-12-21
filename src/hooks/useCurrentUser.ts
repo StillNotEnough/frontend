@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import authService, { type CurrentUserResponse } from '../services/authService';
+import userService from '../services/userService';
 
 interface UseCurrentUserResult {
   user: CurrentUserResponse | null;
@@ -32,7 +33,7 @@ export const useCurrentUser = (): UseCurrentUserResult => {
       setLoading(true);
       setError(null);
       
-      const userData = await authService.getCurrentUser();
+      const userData = await userService.getCurrentUser();
       setUser(userData);
       
     } catch (err) {
@@ -46,7 +47,7 @@ export const useCurrentUser = (): UseCurrentUserResult => {
 
   const updateUser = async (updates: { email?: string; profilePictureUrl?: string }) => {
     try {
-      const updatedUser = await authService.updateCurrentUser(updates);
+      const updatedUser = await userService.updateCurrentUser(updates);
       setUser(updatedUser);
       
     } catch (err) {
