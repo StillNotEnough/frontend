@@ -1,8 +1,9 @@
 // src/services/chatService.ts
 
 import authService from "./authService";
+import { API_BASE_URL } from "./apiConfig";
 
-const API_BASE_URL = "http://localhost:8080/api/v1"; // URL твоего бекенда
+const CHAT_API_URL = `${API_BASE_URL}/api/v1`;
 
 export interface Chat {
   id: number;
@@ -34,7 +35,7 @@ class ChatService {
   // Получить последние чаты
   async getRecentChats(limit: number = 20): Promise<Chat[]> {
     const response = await fetch(
-      `${API_BASE_URL}/chats/recent?limit=${limit}`,
+      `${CHAT_API_URL}/chats/recent?limit=${limit}`,
       {
         headers: await this.getHeaders(),
       }
@@ -49,7 +50,7 @@ class ChatService {
 
   // Создать новый чат
   async createChat(title: string, subject?: string): Promise<Chat> {
-    const response = await fetch(`${API_BASE_URL}/chats`, {
+    const response = await fetch(`${CHAT_API_URL}/chats`, {
       method: "POST",
       headers: await this.getHeaders(),
       body: JSON.stringify({ title, subject }),
@@ -64,7 +65,7 @@ class ChatService {
 
   // Получить сообщения чата
   async getChatMessages(chatId: number): Promise<ChatMessage[]> {
-    const response = await fetch(`${API_BASE_URL}/chats/${chatId}/messages`, {
+    const response = await fetch(`${CHAT_API_URL}/chats/${chatId}/messages`, {
       headers: await this.getHeaders(),
     });
 
@@ -82,7 +83,7 @@ class ChatService {
     role: "user" | "assistant",
     templateUsed?: string
   ): Promise<ChatMessage> {
-    const response = await fetch(`${API_BASE_URL}/chats/${chatId}/messages`, {
+    const response = await fetch(`${CHAT_API_URL}/chats/${chatId}/messages`, {
       method: "POST",
       headers: await this.getHeaders(),
       body: JSON.stringify({ content, role, templateUsed }),
@@ -97,7 +98,7 @@ class ChatService {
 
   // Удалить чат
   async deleteChat(chatId: number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/chats/${chatId}`, {
+    const response = await fetch(`${CHAT_API_URL}/chats/${chatId}`, {
       method: "DELETE",
       headers: await this.getHeaders(),
     });
@@ -108,7 +109,7 @@ class ChatService {
   }
 
   async renameChat(chatId: number, newTitle: string): Promise<Chat> {
-    const response = await fetch(`${API_BASE_URL}/chats/${chatId}/title`, {
+    const response = await fetch(`${CHAT_API_URL}/chats/${chatId}/title`, {
       method: "PUT",
       headers: await this.getHeaders(),
       body: JSON.stringify({ newTitle }),
@@ -118,7 +119,7 @@ class ChatService {
   }
 
   async deleteAllChats(): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/chats/all`, {
+    const response = await fetch(`${CHAT_API_URL}/chats/all`, {
       method: "DELETE",
       headers: await this.getHeaders(),
     });

@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8000"; // Измени на свой URL
+import { AI_BASE_URL } from "./apiConfig";
 
 export interface ChatMessage {
   role: string;
@@ -24,7 +24,7 @@ export interface ChatResponse {
 export const sendChatMessage = async (
   request: ChatRequest
 ): Promise<ChatResponse> => {
-  const response = await fetch(`${API_BASE_URL}/api/chat`, {
+  const response = await fetch(`${AI_BASE_URL}/api/chat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -53,8 +53,8 @@ export const sendChatMessageStream = async (
 ): Promise<void> => {
   try {
     console.log("🚀 Starting stream request:", request);
-    
-    const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
+
+    const response = await fetch(`${AI_BASE_URL}/api/chat/stream`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -91,21 +91,21 @@ export const sendChatMessageStream = async (
       // Декодируем чанк и добавляем к буферу
       const decoded = decoder.decode(value, { stream: true });
       buffer += decoded;
-      
+
       console.log(`📦 Raw chunk #${++chunkCount}:`, decoded.substring(0, 100));
-      
+
       // Разбиваем по переносам строк
       const lines = buffer.split("\n");
-      
+
       // Последняя строка может быть неполной, сохраняем её в буфере
       buffer = lines.pop() || "";
 
       // Обрабатываем полные строки
       for (const line of lines) {
         const trimmedLine = line.trim();
-        
+
         if (!trimmedLine) continue;
-        
+
         if (trimmedLine.startsWith("data: ")) {
           const data = trimmedLine.slice(6).trim();
 
@@ -117,7 +117,7 @@ export const sendChatMessageStream = async (
           try {
             const parsed = JSON.parse(data);
             console.log("📝 Parsed data:", parsed);
-            
+
             if (parsed.content) {
               console.log("✨ Content chunk:", parsed.content);
               onChunk(parsed.content);
@@ -126,7 +126,10 @@ export const sendChatMessageStream = async (
             console.error("❌ Failed to parse chunk:", data, e);
           }
         } else {
-          console.warn("⚠️ Line doesn't start with 'data:':", trimmedLine.substring(0, 50));
+          console.warn(
+            "⚠️ Line doesn't start with 'data:':",
+            trimmedLine.substring(0, 50)
+          );
         }
       }
     }
