@@ -1,43 +1,20 @@
 // src/context/MessagesContext.tsx
-import { createContext, useState, useContext } from "react";
+import { useState } from "react";
 import { sendChatMessageStream } from "../services/aiService";
-import chatService from "../services/chatService";
-
-export interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
-
-export interface MessagesContextType {
-  messages: Message[];
-  setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void;
-  loading: boolean;
-  setLoading: (loading: boolean) => void;
-  sendMessage: (
-    prompt: string,
-    subject: string,
-    isAuthenticated: boolean,
-    currentChatId: number | null,
-    setCurrentChatId: (id: number | null) => void,
-    setChats: (fn: (prev: any[]) => any[]) => void,
-    loadChats: () => Promise<void>
-  ) => Promise<void>;
-}
-
-export const MessagesContext = createContext<MessagesContextType | undefined>(undefined);
+import chatService, { type Chat } from "../services/chatService";
+import { MessagesContext, type Message } from "./messagesContext";
 
 export const MessagesProvider = ({ children }: { children: React.ReactNode }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // ✨ ОРИГИНАЛЬНАЯ AI ЛОГИКА - НЕ ТРОНУТА!
   const sendMessage = async (
     prompt: string,
     subject: string,
     isAuthenticated: boolean,
     currentChatId: number | null,
     setCurrentChatId: (id: number | null) => void,
-    setChats: (fn: (prev: any[]) => any[]) => void,
+    setChats: (fn: (prev: Chat[]) => Chat[]) => void,
     loadChats: () => Promise<void>
   ) => {
     try {
@@ -143,12 +120,4 @@ export const MessagesProvider = ({ children }: { children: React.ReactNode }) =>
       {children}
     </MessagesContext.Provider>
   );
-};
-
-export const useMessages = () => {
-  const context = useContext(MessagesContext);
-  if (!context) {
-    throw new Error("useMessages must be used within MessagesProvider");
-  }
-  return context;
 };
