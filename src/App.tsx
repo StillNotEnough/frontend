@@ -1,7 +1,7 @@
 // src/App.tsx
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import ContextProvider from './context/Context';
+import ContextProvider from './context/ContextProvider';
 import ChatPage from './components/ChatPage/ChatPage';
 
 const App = () => {

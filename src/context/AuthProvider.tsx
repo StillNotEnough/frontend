@@ -1,17 +1,7 @@
-// src/context/AuthContext.tsx
-import { createContext, useState, useEffect, useContext } from "react";
 import authService, { type CurrentUserResponse } from "../services/authService";
+import { useCallback, useEffect, useState } from "react";
 
-export interface AuthContextType {
-  isAuthenticated: boolean;
-  username: string | null;
-  user: CurrentUserResponse | null;
-  userLoading: boolean;
-  refreshUser: () => Promise<void>;
-  logout: () => void;
-}
-
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { AuthContext } from "./authContext";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -21,8 +11,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<CurrentUserResponse | null>(null);
   const [userLoading, setUserLoading] = useState(false);
 
-  // ✨ НОВАЯ ФУНКЦИЯ: загрузка данных пользователя из /me
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     if (!isAuthenticated) {
       setUser(null);
       setUsername(null);
@@ -34,22 +23,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const userData = await authService.getCurrentUser();
       setUser(userData);
       setUsername(userData.username);
-      console.log('✅ User data loaded from /me:', userData);
+      console.log("✅ User data loaded from /me:", userData);
     } catch (error) {
-      console.error('❌ Failed to load user data:', error);
+      console.error("❌ Failed to load user data:", error);
       setUsername(authService.getUsername());
     } finally {
       setUserLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
-  const logout = async () => {
+  const logout = useCallback( async () => {
     await authService.logoutOnBackend();
     authService.logout();
     setIsAuthenticated(false);
     setUsername(null);
     setUser(null);
-  };
+  }, []);
 
   // Проверяем аутентификацию при загрузке
   useEffect(() => {
@@ -96,7 +85,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     checkAuth();
-  }, []);
+  }, [logout, refreshUser]);
 
   // Автообновление токенов
   useEffect(() => {
@@ -117,7 +106,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, logout]);
 
   // Проверка истечения refresh token
   useEffect(() => {
@@ -132,7 +121,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, 60 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, logout]);
 
   return (
     <AuthContext.Provider
@@ -148,12 +137,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-  return context;
 };
