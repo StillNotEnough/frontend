@@ -1,19 +1,25 @@
 // src/components/ProtectedRoute/ProtectedRoute.tsx - С РАЗДЕЛЕННЫМИ КОНТЕКСТАМИ
 
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../context/Context'; // ✅ ИЗМЕНИЛИ ИМПОРТ
+import { useAuth } from "../../context/Context";
+import { useEffect } from 'react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  // ✅ Используем useAuth вместо Context
-  const { isAuthenticated } = useAuth();
+  // Используем useAuth вместо Context
+  const { isAuthenticated, openAuthModal } = useAuth();
 
-  // Если не авторизован - редирект на страницу входа
+  useEffect(() => {
+    if (!isAuthenticated) {
+      openAuthModal("login");
+    }
+  }, [isAuthenticated, openAuthModal]);
+
+  // Если не авторизован - не показываем контент
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return null;
   }
 
   // Если авторизован - показываем контент

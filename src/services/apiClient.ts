@@ -2,6 +2,8 @@
 
 import authService from "./authService";
 import { API_BASE_URL } from "./apiConfig";
+import { openAuthModal } from "./authModalController";
+import { requestLogout } from "./authSessionController";
 
 const buildUrl = (path: string) => {
   if (path.startsWith("http://") || path.startsWith("https://")) {
@@ -67,8 +69,8 @@ export async function fetchWithAuth(
       return retryResponse;
     } catch (error) {
       console.error("❌ Failed to refresh token, logging out");
-      authService.logout();
-      window.location.href = "/login";
+      await requestLogout();
+      openAuthModal("login");
       throw error;
     }
   }
