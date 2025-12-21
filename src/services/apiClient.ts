@@ -77,14 +77,14 @@ export const apiClient = {
     return fetchWithAuth(url, { method: 'GET' });
   },
 
-  post: async (url: string, data: any) => {
+  post: async (url: string, data: unknown) => {
     return fetchWithAuth(url, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   },
 
-  put: async (url: string, data: any) => {
+  put: async (url: string, data: unknown) => {
     return fetchWithAuth(url, {
       method: 'PUT',
       body: JSON.stringify(data),

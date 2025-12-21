@@ -1,16 +1,5 @@
-// src/context/UIContext.tsx
-import { createContext, useState, useEffect, useContext } from "react";
-
-export interface UIContextType {
-  subject: string;
-  setSubject: (subject: string) => void;
-  theme: "light" | "dark";
-  toggleTheme: () => void;
-  sidebarExtended: boolean;
-  setSidebarExtended: (extended: boolean) => void;
-}
-
-export const UIContext = createContext<UIContextType | undefined>(undefined);
+import { useEffect, useState } from "react";
+import { UIContext } from "./uiContext";
 
 export const UIProvider = ({ children }: { children: React.ReactNode }) => {
   const [subject, setSubject] = useState("general");
@@ -50,12 +39,4 @@ export const UIProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </UIContext.Provider>
   );
-};
-
-export const useUI = () => {
-  const context = useContext(UIContext);
-  if (!context) {
-    throw new Error("useUI must be used within UIProvider");
-  }
-  return context;
 };
