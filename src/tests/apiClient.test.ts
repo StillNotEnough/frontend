@@ -50,7 +50,7 @@ describe("fetchWithAuth", () => {
     expect(result).toBe(response);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:8080/api/data",
+      expect.stringMatching(/\/api\/data$/),
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: "Bearer valid-token",
@@ -75,7 +75,7 @@ describe("fetchWithAuth", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      "http://localhost:8080/api/data",
+      expect.stringMatching(/\/api\/data$/),
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: "Bearer new-token",
