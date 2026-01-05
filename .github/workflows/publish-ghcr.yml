@@ -3,8 +3,14 @@ name: frontend CI + Publish (GHCR) + GitOps
 on:
   pull_request:
     branches: ["master"]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
   push:
     branches: ["master"]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
   workflow_dispatch:
 
 permissions:
@@ -15,7 +21,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
       - uses: actions/checkout@v4
 
@@ -42,23 +47,22 @@ jobs:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
     outputs:
       short_sha: ${{ steps.img.outputs.short_sha }}
       image: ${{ steps.img.outputs.image }}
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Compute short sha + image
+      - name: Compute short sha + image (lowercase owner)
         id: img
         run: |
           set -euo pipefail
-          SHORT_SHA="${GITHUB_SHA::7}"
           OWNER="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          IMAGE="ghcr.io/${OWNER}/frontend:sha-${SHORT_SHA}"
 
           echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
-          echo "image=ghcr.io/${OWNER}/frontend:sha-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -76,16 +80,14 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: |
-            ${{ steps.img.outputs.image }}
-            ghcr.io/${{ github.repository_owner }}/frontend:master
+          tags: ${{ steps.img.outputs.image }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Smoke test container
+        shell: bash
         run: |
           set -euo pipefail
-
           IMAGE="${{ steps.img.outputs.image }}"
           echo "Testing image: ${IMAGE}"
 
@@ -113,9 +115,8 @@ jobs:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
-      - name: Checkout GitOps repo
+      - name: Checkout orchestrator repo
         uses: actions/checkout@v4
         with:
           repository: StillNotEnough/shpora-ai-orchestrator-prod
@@ -143,7 +144,7 @@ jobs:
           echo "Updated image to:"
           yq '.spec.template.spec.containers[] | select(.name=="frontend") | .image' "${FILE_PATH}"
 
-      - name: Create PR to GitOps repo
+      - name: Create PR to orchestrator repo
         id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
@@ -158,7 +159,7 @@ jobs:
             Image: ${{ needs.publish_image.outputs.image }}
           labels: automated, frontend
 
-      - name: Enable auto-merge for PR
+      - name: Enable auto-merge for orchestrator PR
         if: steps.cpr.outputs.pull-request-number != ''
         env:
           GH_TOKEN: ${{ secrets.ORCHESTRATOR_TOKEN }}
