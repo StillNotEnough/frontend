@@ -13,6 +13,8 @@ const Sidebar = () => {
   const { username, logout } = useAuth();
   const { sidebarExtended, setSidebarExtended, theme, toggleTheme } = useUI();
   const { chats, currentChatId, createNewChat, selectChat, deleteChat, renameChat } = useChats();
+  console.log('🎨 Sidebar render - chats:', chats); // ← ДОБАВЬ ЭТО
+  console.log('🎨 Sidebar render - chats.length:', chats?.length); // ← И ЭТ
   
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
