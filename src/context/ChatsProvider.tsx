@@ -6,12 +6,12 @@ import chatService, {
 import { ChatsContext } from "./chatsContext";
 import type { Message } from "./messagesContext";
 
-export const ChatsProvider = ({ 
+export const ChatsProvider = ({
   children,
   isAuthenticated,
   setMessages,
   setLoading,
-}: { 
+}: {
   children: React.ReactNode;
   isAuthenticated: boolean;
   setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void;
@@ -20,9 +20,11 @@ export const ChatsProvider = ({
   const [chats, setChats] = useState<Chat[]>([]);
   const [currentChatId, setCurrentChatId] = useState<number | null>(null);
 
-    const loadChats = useCallback(async () => {
+  const loadChats = useCallback(async () => {
     try {
       const fetchedChats = await chatService.getRecentChats(100);
+      console.log("✅ Loaded chats:", fetchedChats);
+      console.log("📊 Chats count:", fetchedChats.length);
       setChats(fetchedChats);
     } catch (error) {
       console.error("Failed to load chats:", error);
@@ -37,7 +39,7 @@ export const ChatsProvider = ({
       setCurrentChatId(null);
       setMessages([]);
     }
-    }, [isAuthenticated, loadChats, setMessages]);
+  }, [isAuthenticated, loadChats, setMessages]);
 
   const createNewChat = async () => {
     try {
@@ -50,15 +52,20 @@ export const ChatsProvider = ({
 
   const selectChat = async (chatId: number) => {
     try {
+      console.log("🔍 Selecting chat:", chatId);
       setLoading(true);
       const chatMessages = await chatService.getChatMessages(chatId);
+      console.log("📦 Got messages:", chatMessages);
+      console.log("📊 Messages count:", chatMessages.length);
 
       const convertedMessages: Message[] = chatMessages.map(
         (msg: ApiChatMessage) => ({
           role: msg.role,
           content: msg.content,
-        })
+        }),
       );
+
+      console.log("✅ Converted messages:", convertedMessages);
 
       setMessages(convertedMessages);
       setCurrentChatId(chatId);
@@ -88,7 +95,7 @@ export const ChatsProvider = ({
       const updatedChat = await chatService.renameChat(chatId, newTitle);
 
       setChats((prev) =>
-        prev.map((chat) => (chat.id === chatId ? updatedChat : chat))
+        prev.map((chat) => (chat.id === chatId ? updatedChat : chat)),
       );
     } catch (error) {
       console.error("Failed to rename chat:", error);

@@ -27,14 +27,16 @@ class ChatService {
   // Получить последние чаты
   async getRecentChats(limit: number = 20): Promise<Chat[]> {
     const response = await apiClient.get(
-      `${CHAT_API_URL}/chats/recent?limit=${limit}`
+      `${CHAT_API_URL}/chats/recent?limit=${limit}`,
     );
 
     if (!response.ok) {
       throw new Error("Failed to fetch chats");
     }
 
-    return response.json();
+    const data = await response.json();
+
+    return data.chats || [];
   }
 
   // Создать новый чат
@@ -54,14 +56,20 @@ class ChatService {
   // Получить сообщения чата
   async getChatMessages(chatId: number): Promise<ChatMessage[]> {
     const response = await apiClient.get(
-      `${CHAT_API_URL}/chats/${chatId}/messages`
+      `${CHAT_API_URL}/chats/${chatId}/messages`,
     );
 
     if (!response.ok) {
       throw new Error("Failed to fetch messages");
     }
 
-    return response.json();
+    const data = await response.json();
+
+    console.log("📦 RAW response from backend:", data); // ← ДОБАВЬ ЭТО
+    console.log("📦 data.messages:", data.messages); // ← И ЭТО
+    console.log("📦 Is array?", Array.isArray(data.messages)); // ← И ЭТО
+
+    return data.messages || [];
   }
 
   // Добавить сообщение в чат
@@ -69,7 +77,7 @@ class ChatService {
     chatId: number,
     content: string,
     role: "user" | "assistant",
-    templateUsed?: string
+    templateUsed?: string,
   ): Promise<ChatMessage> {
     const response = await apiClient.post(
       `${CHAT_API_URL}/chats/${chatId}/messages`,
@@ -77,7 +85,7 @@ class ChatService {
         content,
         role,
         templateUsed,
-      }
+      },
     );
 
     if (!response.ok) {
@@ -99,7 +107,7 @@ class ChatService {
   async renameChat(chatId: number, newTitle: string): Promise<Chat> {
     const response = await apiClient.put(
       `${CHAT_API_URL}/chats/${chatId}/title`,
-      { newTitle }
+      { newTitle },
     );
     if (!response.ok) throw new Error("Failed to rename chat");
     return response.json();
