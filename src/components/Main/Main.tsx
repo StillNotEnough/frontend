@@ -9,14 +9,14 @@ import SubjectsModal from "../SubjectsModal/SubjectsModal";
 import "./Main.css";
 
 interface MainProps {
-  onOpenAuthModal: (modal: 'login' | 'signup') => void;
+  onOpenAuthModal: (modal: "login" | "signup") => void;
 }
 
 const Main = ({ onOpenAuthModal }: MainProps) => {
   const mainRef = useRef<HTMLDivElement>(null);
   const lastSentUserMessageRef = useRef<HTMLDivElement>(null);
   const previousMessagesRef = useRef<ChatMessage[]>([]);
-  
+
   // 🎯 Refs для dropdown
   const subjectsButtonRef = useRef<HTMLButtonElement>(null);
   const [isSubjectsDropdownOpen, setIsSubjectsDropdownOpen] = useState(false);
@@ -24,7 +24,8 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
   // ✅ Используем разделенные контексты
   const { messages, loading } = useMessages();
   const { sidebarExtended, setSubject, subject } = useUI();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, username } = useAuth();
+
 
   // ✨ ОПТИМИЗАЦИЯ: useMemo для рендера сообщений
   const renderedMessages = useMemo(() => {
@@ -78,12 +79,12 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
   // 🎯 Получаем название текущего предмета
   const getSubjectDisplayName = () => {
     const subjectNames: Record<string, string> = {
-      general: 'General',
-      math: 'Mathematics',
-      programming: 'Programming',
-      english: 'English',
+      general: "General",
+      math: "Mathematics",
+      programming: "Programming",
+      english: "English",
     };
-    return subjectNames[subject] || 'General';
+    return subjectNames[subject] || "General";
   };
 
   // 🎯 Toggle dropdown
@@ -91,33 +92,43 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
     setIsSubjectsDropdownOpen(!isSubjectsDropdownOpen);
   };
 
+  const displayName = user?.username || username || "Guest";
+
   return (
     <div className="main" ref={mainRef}>
       <div className="nav">
         {/* 🎯 КНОПКА SUBJECTS С DROPDOWN */}
         <div className="subjects-button-wrapper">
-          <button 
+          <button
             ref={subjectsButtonRef}
             className="subjects-nav-button"
             onClick={toggleSubjectsDropdown}
           >
             <span>{getSubjectDisplayName()}</span>
-            <svg 
-              width="16" 
-              height="16" 
-              viewBox="0 0 16 16" 
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
               fill="none"
-              style={{ 
-                transform: isSubjectsDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.2s ease'
+              style={{
+                transform: isSubjectsDropdownOpen
+                  ? "rotate(180deg)"
+                  : "rotate(0deg)",
+                transition: "transform 0.2s ease",
               }}
             >
-              <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path
+                d="M4 6L8 10L12 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </button>
 
           {/* DROPDOWN */}
-          <SubjectsModal 
+          <SubjectsModal
             isOpen={isSubjectsDropdownOpen}
             onClose={() => setIsSubjectsDropdownOpen(false)}
             buttonRef={subjectsButtonRef}
@@ -151,17 +162,14 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
           <div className="empty-state-wrapper">
             <div className="greet">
               <p>
-                <span className="span">What's new, Matvey?</span>
+                <span className="span">What's new, {displayName}?</span>
               </p>
             </div>
 
             <div className="input-box-placeholder"></div>
 
             <div className="cards">
-              <div
-                className="card"
-                onClick={() => handleCardClick("general")}
-              >
+              <div className="card" onClick={() => handleCardClick("general")}>
                 <img src={assets.compass_icon} alt="" />
                 <p>General</p>
               </div>
@@ -176,10 +184,7 @@ const Main = ({ onOpenAuthModal }: MainProps) => {
                 <img src={assets.code_icon} alt="" />
                 <p>Programming</p>
               </div>
-              <div
-                className="card"
-                onClick={() => handleCardClick("english")}
-              >
+              <div className="card" onClick={() => handleCardClick("english")}>
                 <img src={assets.message_icon} alt="" />
                 <p>English</p>
               </div>
